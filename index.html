@@ -3,15 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Best Combination Finder (Multi-select Machines + Reports)</title>
+  <title>Best Combination Finder (Machines + Categories)</title>
   <style>
     body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
     .container { max-width:1100px; margin:auto; padding:24px; }
     h1 { margin-bottom:4px; }
     .note { color:#555; font-size:14px; }
     .card { background:#fff; border:1px solid #ddd; border-radius:12px; padding:16px; margin-top:12px; }
-    input, button, select, textarea { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
-    textarea { min-height:90px; }
+    input, button, select { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
     button { background:#2563eb; color:white; font-weight:600; border:none; cursor:pointer; margin-top:12px; }
     button.secondary { background:#111; }
     .grid { display:grid; gap:16px; }
@@ -25,21 +24,22 @@
     .err{background:#fef2f2;border:1px solid #fee2e2;padding:8px;border-radius:8px;margin-top:6px;}
     .ok{background:#ecfdf5;border:1px solid #d1fae5;padding:8px;border-radius:8px;margin-top:6px;}
     .checklist { display:flex; flex-wrap:wrap; gap:10px; }
-    label.machine { display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; cursor:pointer; min-width:140px; }
-    label.machine.dim { opacity:0.6; }
-    label.machine input[type="checkbox"] { width:18px; height:18px; flex-shrink:0; }
-    label.machine span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    label.machine, label.category { display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; cursor:pointer; min-width:140px; }
+    label.machine.dim, label.category.dim { opacity:0.6; }
+    label.machine input[type="checkbox"], label.category input[type="checkbox"] { width:18px; height:18px; flex-shrink:0; }
+    label.machine span, label.category span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
   </style>
 </head>
 <body>
   <div class="container">
     <div style='text-align:right;font-size:13px;color:#555;margin-bottom:4px;'>Created by Tony Lu © All Rights Reserved</div>
+    <div class="row" style="justify-content:space-between;align-items:baseline;">
       <div>
         <h1>Best Combination Finder</h1>
-        <div class="note">Rule: Repeat purchase allowed</div>
+        <div class="note">Rule: Total budget &lt; 200 | Each item &lt; 50 | Repeat purchase allowed</div>
       </div>
-      <a href="https://pay.yallvend.com/app/point_check/point_check?key=35269efad18c5c3c8021107649e65eb73756d5920dcc7a7e4ab724fec6b4743f&country=tw" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
+      <a href="https://example.com/balance" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
     </div>
 
     <div class="grid grid-2 card">
@@ -57,6 +57,12 @@
       <label>Select Vending Machines</label>
       <div class="note">Select one or more machines (a more expensive one is unchecked by default).</div>
       <div id="machineList" class="checklist"></div>
+    </div>
+
+    <div class="card">
+      <label>Select Categories</label>
+      <div class="note">Filter items by category. Only items from checked categories will be used.</div>
+      <div id="categoryList" class="checklist"></div>
     </div>
 
     <div class="card">
@@ -78,69 +84,39 @@
 
     <div class="card">
       <h3>Report item update</h3>
-      <div class="note">Use this form to report a missing item or propose a new item. Reports are saved locally and can be emailed.</div>
-      <div class="grid grid-2">
-        <div>
-          <label>Report type</label>
-          <select id="reportType">
-            <option value="missing">Item disappeared / unavailable</option>
-            <option value="add">Add a new item</option>
-          </select>
-        </div>
-        <div>
-          <label>Vending machine</label>
-          <select id="reportLoc"></select>
-        </div>
-      </div>
-      <div class="grid grid-3">
-        <div>
-          <label>Item name</label>
-          <input id="reportName" placeholder="e.g., Apple" />
-        </div>
-        <div>
-          <label>Price (integer)</label>
-          <input id="reportPrice" type="number" step="1" placeholder="e.g., 25" />
-        </div>
-        <div>
-          <label>Optional note</label>
-          <input id="reportNote" placeholder="e.g., out of stock for 3 days" />
-        </div>
-      </div>
-      <div class="row">
-        <button id="submitReport">Submit report</button>
-        <button id="exportReports" class="secondary">Copy all reports (JSON)</button>
-      </div>
-      <div id="reportMsg"></div>
+      <div class="note">Use this link to submit updates (e.g., item disappeared or a new item to add).</div>
+      <a id="reportLink" href="https://example.com/your-google-form" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
     </div>
   </div>
 
 <script>
-// ===== Items with possible different prices across machines =====
+// ===== Items with machine + category (tags) =====
+// category options: 'Drink', 'Snack', 'Other'
 const items = [
-  { name: "Apple", priceCents: 2500, loc: "Machine A" },
-  { name: "Apple", priceCents: 2600, loc: "Machine B" },
-  { name: "Milk", priceCents: 4250, loc: "Machine B" },
-  { name: "Milk", priceCents: 4500, loc: "Machine Premium" },
-  { name: "Bread", priceCents: 3800, loc: "Machine A" },
-  { name: "Bread", priceCents: 3700, loc: "Machine C" },
-  { name: "Cookies", priceCents: 1500, loc: "Machine A" },
-  { name: "Cookies", priceCents: 1500, loc: "Machine B" },
-  { name: "Soy Milk", priceCents: 1850, loc: "Machine C" },
-  { name: "Tea Egg", priceCents: 1200, loc: "Machine B" },
-  { name: "Tea Egg", priceCents: 1400, loc: "Machine Premium" },
-  { name: "Yogurt", priceCents: 2800, loc: "Machine C" },
-  { name: "Instant Noodles", priceCents: 3200, loc: "Machine B" },
-  { name: "Instant Noodles", priceCents: 3100, loc: "Machine C" }
+  { name: "Apple Juice",    priceCents: 2500, loc: "Machine A",      cat: 'Drink' },
+  { name: "Apple Juice",    priceCents: 2600, loc: "Machine B",      cat: 'Drink' }, // same item, diff price
+  { name: "Milk",           priceCents: 4250, loc: "Machine B",      cat: 'Drink' },
+  { name: "Milk",           priceCents: 4500, loc: "Machine Premium",cat: 'Drink' }, // expensive machine
+  { name: "Bread",          priceCents: 3800, loc: "Machine A",      cat: 'Other' },
+  { name: "Bread",          priceCents: 3700, loc: "Machine C",      cat: 'Other' },
+  { name: "Cookies",        priceCents: 1500, loc: "Machine A",      cat: 'Snack' },
+  { name: "Cookies",        priceCents: 1500, loc: "Machine B",      cat: 'Snack' }, // same price different machine
+  { name: "Soy Milk",       priceCents: 1850, loc: "Machine C",      cat: 'Drink' },
+  { name: "Tea Egg",        priceCents: 1200, loc: "Machine B",      cat: 'Other' },
+  { name: "Tea Egg",        priceCents: 1400, loc: "Machine Premium",cat: 'Other' },
+  { name: "Yogurt",         priceCents: 2800, loc: "Machine C",      cat: 'Snack' },
+  { name: "Instant Noodles",priceCents: 3200, loc: "Machine B",      cat: 'Other' },
+  { name: "Instant Noodles",priceCents: 3100, loc: "Machine C",      cat: 'Other' }
 ];
 
-const EXCLUDED_BY_DEFAULT = new Set(['Machine Premium']);
-const REPORT_EMAIL = 'you@example.com'; // <-- change to your email for mailto
+const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['Machine Premium']);
+const CATEGORIES = ['Drink','Snack','Other'];
+const EXCLUDED_CATS_BY_DEFAULT = new Set([]); // keep all checked by default
 
 function cents(x){return Math.round(Number(x)*100)}
 function money(c){return Math.round(c/100)} // integer display
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
-function ok(msg){const d=document.createElement('div');d.className='ok';d.textContent='✅ '+msg;return d}
 
 function solveUnbounded(budget,items){
   const dp=new Array(budget+1).fill(false);dp[0]=true;
@@ -158,12 +134,13 @@ function solveUnbounded(budget,items){
 function reconstruct(sum,prev,items){
   const m=new Map();let cur=sum;
   while(cur>0){const i=prev[cur];if(i<0)break;m.set(i,(m.get(i)||0)+1);cur-=items[i].priceCents;}
-  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents,loc:items[i].loc}));
+  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents,loc:items[i].loc,cat:items[i].cat}));
   return {items:arr,totalCents:sum};
 }
 
 // ===== UI refs =====
 const machineList=document.getElementById('machineList');
+const categoryList=document.getElementById('categoryList');
 const budgetInput=document.getElementById('budget');
 const allowInput=document.getElementById('allowLeft');
 const messages=document.getElementById('messages');
@@ -174,39 +151,41 @@ const statCount=document.getElementById('statCount');
 const btnRun=document.getElementById('run');
 const btnReset=document.getElementById('reset');
 
-// Report refs
-const reportType=document.getElementById('reportType');
-const reportLoc=document.getElementById('reportLoc');
-const reportName=document.getElementById('reportName');
-const reportPrice=document.getElementById('reportPrice');
-const reportNote=document.getElementById('reportNote');
-const submitReport=document.getElementById('submitReport');
-const exportReports=document.getElementById('exportReports');
-const reportMsg=document.getElementById('reportMsg');
-
 (function initMachineList(){
   const locs=[...new Set(items.map(x=>x.loc))].sort();
   machineList.innerHTML='';
   locs.forEach(loc=>{
     const label=document.createElement('label');
-    label.className='machine'+(EXCLUDED_BY_DEFAULT.has(loc)?' dim':'');
+    label.className='machine'+(EXCLUDED_MACHINES_BY_DEFAULT.has(loc)?' dim':'');
     const cb=document.createElement('input');
     cb.type='checkbox';
     cb.value=loc;
-    cb.checked=!EXCLUDED_BY_DEFAULT.has(loc);
+    cb.checked=!EXCLUDED_MACHINES_BY_DEFAULT.has(loc);
     cb.addEventListener('change',()=>label.classList.toggle('dim',!cb.checked));
-    label.appendChild(cb);
-    const span=document.createElement('span');span.textContent=loc;label.appendChild(span);
+    const span=document.createElement('span'); span.textContent=loc;
+    label.appendChild(cb); label.appendChild(span);
     machineList.appendChild(label);
   });
-
-  // also fill report location dropdown
-  reportLoc.innerHTML='';
-  locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; reportLoc.appendChild(o); });
 })();
 
-function getSelectedMachines(){
-  return Array.from(machineList.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
+(function initCategoryList(){
+  categoryList.innerHTML='';
+  CATEGORIES.forEach(cat=>{
+    const label=document.createElement('label');
+    label.className='category'+(EXCLUDED_CATS_BY_DEFAULT.has(cat)?' dim':'');
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.value=cat;
+    cb.checked=!EXCLUDED_CATS_BY_DEFAULT.has(cat);
+    cb.addEventListener('change',()=>label.classList.toggle('dim',!cb.checked));
+    const span=document.createElement('span'); span.textContent=cat;
+    label.appendChild(cb); label.appendChild(span);
+    categoryList.appendChild(label);
+  });
+})();
+
+function getChecked(listEl){
+  return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
 }
 
 btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
@@ -219,10 +198,13 @@ btnRun.onclick=()=>{
   const budgetCents=Math.min(Math.round(budgetVal*100),19999);
   const allowCents=Math.max(0,Math.round(allowVal*100));
 
-  const selected=getSelectedMachines();
-  if(selected.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
-  const filtered=items.filter(x=>selected.includes(x.loc));
-  if(filtered.length===0){messages.appendChild(err('No items in selected machines.'));return;}
+  const selectedMachines=getChecked(machineList);
+  const selectedCats=getChecked(categoryList);
+  if(selectedMachines.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
+  if(selectedCats.length===0){messages.appendChild(err('Please select at least one category.'));return;}
+
+  const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat));
+  if(filtered.length===0){messages.appendChild(err('No items match the selected machines and categories.'));return;}
 
   const {dp,prev}=solveUnbounded(budgetCents,filtered);
   const low=Math.max(0,budgetCents-allowCents);
@@ -239,49 +221,11 @@ btnRun.onclick=()=>{
     const combo=reconstruct(sum,prev,filtered);
     const card=document.createElement('div');card.className='card';
     card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
-    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.loc)}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
+    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Category</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.cat)}</td><td>${escapeHtml(it.loc)}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
     card.appendChild(tbl);frag.appendChild(card);
   });
   if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
   list.appendChild(frag);
-}
-
-// ===== Reporting logic (local + mailto) =====
-function loadReports(){ try{ return JSON.parse(localStorage.getItem('reports')||'[]'); }catch{ return []; } }
-function saveReports(arr){ localStorage.setItem('reports', JSON.stringify(arr)); }
-
-submitReport.onclick=()=>{
-  reportMsg.innerHTML='';
-  const type=reportType.value; // 'missing' | 'add'
-  const loc=reportLoc.value.trim();
-  const name=reportName.value.trim();
-  const priceVal=reportPrice.value.trim();
-  const price=priceVal? Number(priceVal): undefined;
-  const note=reportNote.value.trim();
-
-  if(!name){ reportMsg.appendChild(err('Item name is required.')); return; }
-  if(type==='add' && (!priceVal || Number(priceVal)<=0)){ reportMsg.appendChild(err('Price is required for adding an item.')); return; }
-
-  const entry={ id:Date.now(), type, loc, name, price: price ?? null, note, when:new Date().toISOString() };
-  const all=loadReports(); all.push(entry); saveReports(all);
-
-  // Optional: open email composer
-  if(REPORT_EMAIL && REPORT_EMAIL.includes('@')){
-    const subject = encodeURIComponent(`[Vending Report] ${type==='missing'?'Missing':'Add'} · ${name} @ ${loc}`);
-    const body = encodeURIComponent(
-      `Type: ${type}\nItem: ${name}\nLocation: ${loc}\nPrice: ${price ?? '-'}\nNote: ${note || '-'}\nTime: ${entry.when}\n`);
-    window.open(`mailto:${REPORT_EMAIL}?subject=${subject}&body=${body}`, '_blank');
-  }
-
-  reportMsg.appendChild(ok('Report saved locally. You can also email it now.'));
-  reportName.value=''; reportPrice.value=''; reportNote.value='';
-}
-
-exportReports.onclick=async()=>{
-  const all=loadReports();
-  const text=JSON.stringify(all, null, 2);
-  try{ await navigator.clipboard.writeText(text); reportMsg.appendChild(ok('All reports copied to clipboard as JSON.')); }
-  catch{ reportMsg.appendChild(err('Failed to copy. You can open DevTools and copy from localStorage."reports".')); }
 }
 
 function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
