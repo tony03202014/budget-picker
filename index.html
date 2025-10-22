@@ -192,7 +192,38 @@ function money(c){return Math.round(c/100)}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;');}
-function solveUnbounded(budget,items){const dp=new Array(budget+1).fill(false);dp[0]=true;const prev=new Array(budget+1).fill(-1);for(let s=0;s<=budget;s++){if(!dp[s])continue;for(let i=0;i<items.length;i++){const ns=s+items[i].priceCents;if(ns<=budget&&!dp[ns]){dp[ns]=true;prev[ns]=i;}}}return{dp,prev}}
+function solveUnbounded(budget, items){
+  // Bias toward cheaper unit prices when multiple ways reach the same sum.
+  // We'll keep, for each reachable sum, the price of the last item used; if a new path
+  // reaches the same sum with a cheaper last item, we prefer that path.
+  const dp = new Array(budget + 1).fill(false); dp[0] = true;
+  const prev = new Array(budget + 1).fill(-1); // index of item used to reach sum
+  const lastPrice = new Array(budget + 1).fill(Infinity); // unit price of item used at this sum
+
+  // Ensure stable preference: iterate items sorted by ascending price (then name)
+  const order = [...items.keys()].sort((i,j)=>{
+    const pi = items[i].priceCents, pj = items[j].priceCents;
+    if (pi !== pj) return pi - pj;
+    const ni = items[i].name.localeCompare(items[j].name);
+    if (ni !== 0) return ni;
+    return items[i].loc.localeCompare(items[j].loc);
+  });
+
+  for(let s = 0; s <= budget; s++){
+    if(!dp[s]) continue;
+    for(const i of order){
+      const ns = s + items[i].priceCents;
+      if(ns > budget) continue;
+      if(!dp[ns]){
+        dp[ns] = true; prev[ns] = i; lastPrice[ns] = items[i].priceCents;
+      }else if(items[i].priceCents < lastPrice[ns]){
+        // Prefer paths that use a cheaper priced item at this step
+        prev[ns] = i; lastPrice[ns] = items[i].priceCents;
+      }
+    }
+  }
+  return { dp, prev };
+}}}return{dp,prev}}
 function reconstruct(sum,prev,items){const m=new Map();let cur=sum;while(cur>0){const i=prev[cur];if(i<0)break;m.set(i,(m.get(i)||0)+1);cur-=items[i].priceCents;}return{items:[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents,loc:items[i].loc,cat:items[i].cat})),totalCents:sum}}
 function buildPriceCatalog(list){const byPrice=new Map();for(const it of list){if(!byPrice.has(it.priceCents))byPrice.set(it.priceCents,new Map());const byName=byPrice.get(it.priceCents);if(!byName.has(it.name))byName.set(it.name,new Set());byName.get(it.name).add(it.loc);}return byPrice;}
 const machineList=document.getElementById('machineList');
