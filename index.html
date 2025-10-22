@@ -120,7 +120,7 @@ const items = [
 const EXCLUDED_BY_DEFAULT = new Set(['Machine Premium']);
 
 function cents(x){return Math.round(Number(x)*100)}
-function money(c){return (c/100).toFixed(2)}
+function money(c){return Math.round(c/100)}
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
 
