@@ -79,6 +79,13 @@
 
     <div class="card">
       <h3>Best Solutions</h3>
+      <div id="excludeBar" class="row" style="margin-bottom:8px;">
+        <div class="note" id="excludeCount">Excluded items: 0</div>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+          <button id="recalcExcluded">Recalculate without checked</button>
+          <button id="clearExcluded" class="secondary">Clear exclusions</button>
+        </div>
+      </div>
       <div id="list"></div>
     </div>
 
@@ -150,6 +157,14 @@ const statRemain=document.getElementById('statRemain');
 const statCount=document.getElementById('statCount');
 const btnRun=document.getElementById('run');
 const btnReset=document.getElementById('reset');
+const excludeCountEl=document.getElementById('excludeCount');
+const recalcExcluded=document.getElementById('recalcExcluded');
+const clearExcluded=document.getElementById('clearExcluded');
+const excluded = new Set();
+function itemKey(o){ return o.name+'@@'+o.loc+'@@'+o.priceCents; }
+function updateExcludeCount(){ if(excludeCountEl) excludeCountEl.textContent = 'Excluded items: ' + excluded.size; }
+if(recalcExcluded) recalcExcluded.onclick=()=>{ btnRun.onclick(); };
+if(clearExcluded) clearExcluded.onclick=()=>{ excluded.clear(); updateExcludeCount(); btnRun.onclick(); };
 
 (function initMachineList(){
   const locs=[...new Set(items.map(x=>x.loc))].sort();
@@ -203,7 +218,7 @@ btnRun.onclick=()=>{
   if(selectedMachines.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
   if(selectedCats.length===0){messages.appendChild(err('Please select at least one category.'));return;}
 
-  const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat));
+  const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat) && !excluded.has(itemKey(x)));
   if(filtered.length===0){messages.appendChild(err('No items match the selected machines and categories.'));return;}
 
   const {dp,prev}=solveUnbounded(budgetCents,filtered);
@@ -221,14 +236,25 @@ btnRun.onclick=()=>{
     const combo=reconstruct(sum,prev,filtered);
     const card=document.createElement('div');card.className='card';
     card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
-    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.loc)}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
+    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Exclude</th><th>Item</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>{ const k=itemKey(it); const checked = excluded.has(k) ? 'checked' : ''; return `<tr><td><input type="checkbox" class="exclude-toggle" data-exkey="${escapeAttr(k)}" ${checked}></td><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.loc)}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`; }).join('')}</tbody>`;
     card.appendChild(tbl);frag.appendChild(card);
   });
   if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
   list.appendChild(frag);
+  // attach listeners to exclude toggles
+  document.querySelectorAll('input.exclude-toggle').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      var k = this.getAttribute('data-exkey');
+      if(!k) return;
+      if(this.checked){ excluded.add(k); } else { excluded.delete(k); }
+      updateExcludeCount();
+    });
+  });
+  updateExcludeCount();
 }
 
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;'); }
+function escapeAttr(s){ return s.replace(/&/g,'&amp;').replace(/\"/g,'&quot;'); }
 </script>
 </body>
 </html>
