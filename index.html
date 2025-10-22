@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Best Combination Finder (Multi-select Machines)</title>
-  <style>
+    <style>
     body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
     .container { max-width:1100px; margin:auto; padding:24px; }
     h1 { margin-bottom:4px; }
@@ -22,10 +22,37 @@
     th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;}
     .warn{background:#fffbeb;border:1px solid #fef3c7;padding:8px;border-radius:8px;margin-top:6px;}
     .err{background:#fef2f2;border:1px solid #fee2e2;padding:8px;border-radius:8px;margin-top:6px;}
-    .checklist { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; }
-    label.machine { display:flex; align-items:center; gap:6px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; }
-    label.machine.dim { opacity:0.6; }
+    .checklist {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    label.machine {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 6px 10px;
+      background: #fff;
+      cursor: pointer;
+      min-width: 140px;
+    }
+    label.machine input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+    label.machine span {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    label.machine.dim {
+      opacity: 0.6;
+    }
   </style>
+
 </head>
 <body>
   <div class="container">
