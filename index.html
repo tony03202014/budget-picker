@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Best Combination Finder (Machines + Categories)</title>
+  <title>Best Combination Finder (Machines + Categories + Price Exclude)</title>
   <style>
     body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
     .container { max-width:1100px; margin:auto; padding:24px; }
@@ -81,6 +81,13 @@
 
     <div class="card">
       <h3>Best Solutions</h3>
+      <div id="excludeBar" class="row" style="margin-bottom:8px;">
+        <div class="note" id="excludeCount">Excluded unit prices: 0</div>
+        <div style="margin-left:auto; display:flex; gap:8px;">
+          <button id="recalcExcluded">Recalculate without checked prices</button>
+          <button id="clearExcluded" class="secondary">Clear price exclusions</button>
+        </div>
+      </div>
       <div id="list"></div>
     </div>
 
@@ -108,13 +115,10 @@ const items = [
 ];
 
 // ===== Helpers =====
-function cents(x){return Math.round(Number(x)*100)}
 function money(c){return Math.round(c/100)} // integer display
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
-function ok(msg){const d=document.createElement('div');d.className='ok';d.textContent='✅ '+msg;return d}
 function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;'); }
-function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/\"/g,'&quot;'); }
 
 function solveUnbounded(budget,items){
   const dp=new Array(budget+1).fill(false);dp[0]=true;
@@ -160,9 +164,13 @@ const statRemain=document.getElementById('statRemain');
 const statCount=document.getElementById('statCount');
 const btnRun=document.getElementById('run');
 const btnReset=document.getElementById('reset');
+const excludeCountEl=document.getElementById('excludeCount');
+const recalcExcluded=document.getElementById('recalcExcluded');
+const clearExcluded=document.getElementById('clearExcluded');
 
-
-{ if(excludeCountEl) excludeCountEl.textContent = 'Excluded items: ' + excluded.size; }
+// ===== Exclude by UNIT PRICE =====
+const excludedPrices = new Set();
+function updateExcludeCount(){ excludeCountEl.textContent = 'Excluded unit prices: ' + excludedPrices.size; }
 
 // Init checklists after DOM loaded
 function initMachineList(){
@@ -202,12 +210,18 @@ function getChecked(listEl){
   return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
 }
 
-btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
+btnReset.onclick=()=>{
+  messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';
+  excludedPrices.clear(); updateExcludeCount();
+}
+if(recalcExcluded) recalcExcluded.onclick=()=>{ btnRun.click(); };
+if(clearExcluded) clearExcluded.onclick=()=>{ excludedPrices.clear(); updateExcludeCount(); btnRun.click(); };
 
-
-btnRun.onclicssages.innerHTML='';list.innerHTML='';
+btnRun.onclick=()=>{
+  try{
+    messages.innerHTML='';list.innerHTML='';
     const budgetVal=Number(budgetInput.value)||0;
-    collowInput.value)||0;
+    const allowVal=Number(allowInput.value)||0;
     if(budgetVal<=0||budgetVal>=200){messages.appendChild(err('Budget must be between 0 and 200.'));return;}
     const budgetCents=Math.min(Math.round(budgetVal*100),19999);
     const allowCents=Math.max(0,Math.round(allowVal*100));
@@ -217,16 +231,20 @@ btnRun.onclicssages.innerHTML='';list.innerHTML='';
     if(selectedMachines.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
     if(selectedCats.length===0){messages.appendChild(err('Please select at least one category.'));return;}
 
-    const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat));
-    if(filtered.length===0){messages.appendChild(err('No items match the selected machines and categories.'));return;}
+    // filter by machine, category, and EXCLUDED UNIT PRICES
+    const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat) && !excludedPrices.has(x.priceCents));
+    if(filtered.length===0){messages.appendChild(err('No items match the selected machines, categories, and price exclusions.'));return;}
 
     const priceCatalog = buildPriceCatalog(filtered);
 
     const {dp,prev}=solveUnbounded(budgetCents,filtered);
     const low=Math.max(0,budgetCents-allowCents);
+
+    // Remains priority: 0 first up to allowed remaining
     const valid=[];
-    for(let s=budgetCents;s>=low;s--){if(dp[s])valid.push(s);}  
+    for(let s=budgetCents;s>=low;s--){ if(dp[s]) valid.push(s); }
     if(valid.length===0){messages.appendChild(err('No combination found.'));return;}
+
     statBest.textContent=money(valid[0]);
     statRemain.textContent=money(budgetCents-valid[0]);
     statCount.textContent=valid.length;
@@ -238,7 +256,7 @@ btnRun.onclicssages.innerHTML='';list.innerHTML='';
       const card=document.createElement('div');card.className='card';
       card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
 
-      // Group picked items by unit price
+      // Group picked items by unit price (and render a checkbox to exclude that UNIT PRICE)
       const tbl=document.createElement('table');
       const countByPrice = new Map();
       combo.items.forEach(it=>{ countByPrice.set(it.priceCents, (countByPrice.get(it.priceCents)||0) + it.qty); });
@@ -252,16 +270,28 @@ btnRun.onclicssages.innerHTML='';list.innerHTML='';
             return `<li><strong>${escapeHtml(name)}</strong><div class=\"note\">${escapeHtml(locs)}</div></li>`;
           }).join('');
           const details = `<details><summary>Show items for price ${money(p)}</summary><ul style=\"margin:6px 0 0 18px;\">${optionsHtml||'<li class=\"note\">No items listed</li>'}</ul></details>`;
-          return `<tr><td>${money(p)}</td><td>${qty}</td><td>${money(subtotal)}</td><td>${details}</td></tr>`;
+          const checked = excludedPrices.has(p) ? 'checked' : '';
+          return `<tr>
+            <td><label style=\"display:inline-flex;align-items:center;gap:6px;\"><input type=\"checkbox\" class=\"exclude-price\" data-price=\"${p}\" ${checked}/> Exclude</label></td>
+            <td>${money(p)}</td><td>${qty}</td><td>${money(subtotal)}</td><td>${details}</td></tr>`;
         }).join('');
-      tbl.innerHTML=`<thead><tr><th>Unit Price</th><th>Qty</th><th>Subtotal</th><th>Options</th></tr></thead><tbody>${rows}</tbody>`;
+      tbl.innerHTML=`<thead><tr><th>Action</th><th>Unit Price</th><th>Qty</th><th>Subtotal</th><th>Options</th></tr></thead><tbody>${rows}</tbody>`;
 
       card.appendChild(tbl);
       frag.appendChild(card);
     });
     if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
     list.appendChild(frag);
-    
+
+    // Attach listeners to the unit-price exclude checkboxes
+    document.querySelectorAll('input.exclude-price').forEach(cb=>{
+      cb.addEventListener('change',()=>{
+        const p = Number(cb.getAttribute('data-price'));
+        if(cb.checked){ excludedPrices.add(p); } else { excludedPrices.delete(p); }
+        updateExcludeCount();
+      });
+    });
+    updateExcludeCount();
   } catch (e){
     console.error(e);
     messages.appendChild(err('Unexpected error: '+ (e && e.message ? e.message : e)));
@@ -272,9 +302,7 @@ btnRun.onclicssages.innerHTML='';list.innerHTML='';
 window.addEventListener('DOMContentLoaded', ()=>{
   initMachineList();
   initCategoryList();
-});
-  initCategoryList();
-  
+  updateExcludeCount();
 });
 </script>
 </body>
