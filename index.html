@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Best Combination Finder (Machines + Categories)</title>
+  <title>Best Combination Finder (Machines + Categories + Exclude)</title>
   <style>
     body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
     .container { max-width:1100px; margin:auto; padding:24px; }
@@ -24,16 +24,18 @@
     .err{background:#fef2f2;border:1px solid #fee2e2;padding:8px;border-radius:8px;margin-top:6px;}
     .ok{background:#ecfdf5;border:1px solid #d1fae5;padding:8px;border-radius:8px;margin-top:6px;}
     .checklist { display:flex; flex-wrap:wrap; gap:10px; }
-    label.machine, label.category { display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; cursor:pointer; min-width:140px; user-select:none; }
+    label.machine, label.category { display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; cursor:pointer; min-width:160px; user-select:none; }
     label.machine.dim, label.category.dim { opacity:0.6; }
     label.machine input[type="checkbox"], label.category input[type="checkbox"] { width:18px; height:18px; flex-shrink:0; }
     label.machine span, label.category span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .row { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    details summary { cursor:pointer; }
+    .topbar { text-align:right;font-size:13px;color:#555;margin-bottom:4px; }
   </style>
 </head>
 <body>
   <div class="container">
-    <div style='text-align:right;font-size:13px;color:#555;margin-bottom:4px;'>Created by Tony Lu © All Rights Reserved</div>
+    <div class="topbar">Created by Tony Lu © All Rights Reserved</div>
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <div>
         <h1>Best Combination Finder</h1>
@@ -55,13 +57,13 @@
 
     <div class="card">
       <label>Select Vending Machines</label>
-      <div class="note">Select one or more machines (a more expensive one is unchecked by default).</div>
+      <div class="note">Select one or more machines (expensive machines can be unchecked by default).</div>
       <div id="machineList" class="checklist"></div>
     </div>
 
     <div class="card">
       <label>Select Categories</label>
-      <div class="note">Filter items by category. Only items from checked categories will be used.</div>
+      <div class="note">Filter items by category. Only checked categories will be used.</div>
       <div id="categoryList" class="checklist"></div>
     </div>
 
@@ -97,33 +99,29 @@
   </div>
 
 <script>
-// ===== Items with machine + category (tags) =====
-// category options: 'Drink', 'Snack', 'Other'
-const items = [
-  { name: "Apple Juice",    priceCents: 2500, loc: "Machine A",      cat: 'Drink' },
-  { name: "Apple Juice",    priceCents: 2600, loc: "Machine B",      cat: 'Drink' }, // same item, diff price
-  { name: "Milk",           priceCents: 4250, loc: "Machine B",      cat: 'Drink' },
-  { name: "Milk",           priceCents: 4500, loc: "Machine Premium",cat: 'Drink' }, // expensive machine
-  { name: "Bread",          priceCents: 3800, loc: "Machine A",      cat: 'Other' },
-  { name: "Bread",          priceCents: 3700, loc: "Machine C",      cat: 'Other' },
-  { name: "Cookies",        priceCents: 1500, loc: "Machine A",      cat: 'Snack' },
-  { name: "Cookies",        priceCents: 1500, loc: "Machine B",      cat: 'Snack' }, // same price different machine
-  { name: "Soy Milk",       priceCents: 1850, loc: "Machine C",      cat: 'Drink' },
-  { name: "Tea Egg",        priceCents: 1200, loc: "Machine B",      cat: 'Other' },
-  { name: "Tea Egg",        priceCents: 1400, loc: "Machine Premium",cat: 'Other' },
-  { name: "Yogurt",         priceCents: 2800, loc: "Machine C",      cat: 'Snack' },
-  { name: "Instant Noodles",priceCents: 3200, loc: "Machine B",      cat: 'Other' },
-  { name: "Instant Noodles",priceCents: 3100, loc: "Machine C",      cat: 'Other' }
-];
-
+// ===== Config =====
 const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['Machine Premium']);
 const CATEGORIES = ['Drink','Snack','Other'];
-const EXCLUDED_CATS_BY_DEFAULT = new Set([]); // keep all checked by default
+const EXCLUDED_CATS_BY_DEFAULT = new Set([]);
 
+// ===== Items placeholder (replace with your full list) =====
+const items = [
+  { name: 'Apple Juice', priceCents: 2500, loc: 'Machine A', cat: 'Drink' },
+  { name: 'Apple Juice', priceCents: 2600, loc: 'Machine B', cat: 'Drink' },
+  { name: 'Milk', priceCents: 4250, loc: 'Machine B', cat: 'Drink' },
+  { name: 'Milk', priceCents: 4500, loc: 'Machine Premium', cat: 'Drink' },
+  { name: 'Cookies', priceCents: 1500, loc: 'Machine A', cat: 'Snack' },
+  { name: 'Instant Noodles', priceCents: 3200, loc: 'Machine B', cat: 'Other' }
+];
+
+// ===== Helpers =====
 function cents(x){return Math.round(Number(x)*100)}
 function money(c){return Math.round(c/100)} // integer display
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
+function ok(msg){const d=document.createElement('div');d.className='ok';d.textContent='✅ '+msg;return d}
+function escapeHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;'); }
+function escapeAttr(s){ return String(s).replace(/&/g,'&amp;').replace(/\"/g,'&quot;'); }
 
 function solveUnbounded(budget,items){
   const dp=new Array(budget+1).fill(false);dp[0]=true;
@@ -156,9 +154,6 @@ function buildPriceCatalog(list){
   }
   return byPrice; // Map<number, Map<string, Set<string>>>
 }
-  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents,loc:items[i].loc,cat:items[i].cat}));
-  return {items:arr,totalCents:sum};
-}
 
 // ===== UI refs =====
 const machineList=document.getElementById('machineList');
@@ -175,13 +170,14 @@ const btnReset=document.getElementById('reset');
 const excludeCountEl=document.getElementById('excludeCount');
 const recalcExcluded=document.getElementById('recalcExcluded');
 const clearExcluded=document.getElementById('clearExcluded');
+
+// Exclusion helpers
 const excluded = new Set();
 function itemKey(o){ return o.name+'@@'+o.loc+'@@'+o.priceCents; }
 function updateExcludeCount(){ if(excludeCountEl) excludeCountEl.textContent = 'Excluded items: ' + excluded.size; }
-if(recalcExcluded) recalcExcluded.onclick=()=>{ btnRun.onclick(); };
-if(clearExcluded) clearExcluded.onclick=()=>{ excluded.clear(); updateExcludeCount(); btnRun.onclick(); };
 
-(function initMachineList(){
+// Init checklists after DOM loaded
+function initMachineList(){
   const locs=[...new Set(items.map(x=>x.loc))].sort();
   machineList.innerHTML='';
   locs.forEach(loc=>{
@@ -196,9 +192,9 @@ if(clearExcluded) clearExcluded.onclick=()=>{ excluded.clear(); updateExcludeCou
     label.appendChild(cb); label.appendChild(span);
     machineList.appendChild(label);
   });
-})();
+}
 
-(function initCategoryList(){
+function initCategoryList(){
   categoryList.innerHTML='';
   CATEGORIES.forEach(cat=>{
     const label=document.createElement('label');
@@ -212,84 +208,87 @@ if(clearExcluded) clearExcluded.onclick=()=>{ excluded.clear(); updateExcludeCou
     label.appendChild(cb); label.appendChild(span);
     categoryList.appendChild(label);
   });
-})();
+}
 
 function getChecked(listEl){
   return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
 }
 
-btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
+btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';excluded.clear();updateExcludeCount();}
+if(recalcExcluded) recalcExcluded.onclick=()=>{ btnRun.click(); };
+if(clearExcluded) clearExcluded.onclick=()=>{ excluded.clear(); updateExcludeCount(); btnRun.click(); };
 
 btnRun.onclick=()=>{
-  messages.innerHTML='';list.innerHTML='';
-  const budgetVal=Number(budgetInput.value)||0;
-  const allowVal=Number(allowInput.value)||0;
-  if(budgetVal<=0||budgetVal>=200){messages.appendChild(err('Budget must be between 0 and 200.'));return;}
-  const budgetCents=Math.min(Math.round(budgetVal*100),19999);
-  const allowCents=Math.max(0,Math.round(allowVal*100));
+  try{
+    messages.innerHTML='';list.innerHTML='';
+    const budgetVal=Number(budgetInput.value)||0;
+    const allowVal=Number(allowInput.value)||0;
+    if(budgetVal<=0||budgetVal>=200){messages.appendChild(err('Budget must be between 0 and 200.'));return;}
+    const budgetCents=Math.min(Math.round(budgetVal*100),19999);
+    const allowCents=Math.max(0,Math.round(allowVal*100));
 
-  const selectedMachines=getChecked(machineList);
-  const selectedCats=getChecked(categoryList);
-  if(selectedMachines.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
-  if(selectedCats.length===0){messages.appendChild(err('Please select at least one category.'));return;}
+    const selectedMachines=getChecked(machineList);
+    const selectedCats=getChecked(categoryList);
+    if(selectedMachines.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
+    if(selectedCats.length===0){messages.appendChild(err('Please select at least one category.'));return;}
 
-  const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat) && !excluded.has(itemKey(x)));
+    const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat) && !excluded.has(itemKey(x)));
+    if(filtered.length===0){messages.appendChild(err('No items match the selected machines and categories.'));return;}
 
-  // Build a per-run catalog of items grouped by unit price
-  const priceCatalog = buildPriceCatalog(filtered);
-  if(filtered.length===0){messages.appendChild(err('No items match the selected machines and categories.'));return;}
+    const priceCatalog = buildPriceCatalog(filtered);
 
-  const {dp,prev}=solveUnbounded(budgetCents,filtered);
-  const low=Math.max(0,budgetCents-allowCents);
-  const valid=[];
-  for(let s=budgetCents;s>=low;s--){if(dp[s])valid.push(s);}  
-  if(valid.length===0){messages.appendChild(err('No combination found.'));return;}
-  statBest.textContent=money(valid[0]);
-  statRemain.textContent=money(budgetCents-valid[0]);
-  statCount.textContent=valid.length;
+    const {dp,prev}=solveUnbounded(budgetCents,filtered);
+    const low=Math.max(0,budgetCents-allowCents);
+    const valid=[];
+    for(let s=budgetCents;s>=low;s--){if(dp[s])valid.push(s);}  
+    if(valid.length===0){messages.appendChild(err('No combination found.'));return;}
+    statBest.textContent=money(valid[0]);
+    statRemain.textContent=money(budgetCents-valid[0]);
+    statCount.textContent=valid.length;
 
-  const frag=document.createDocumentFragment();
-  const maxShow=50;
-  valid.slice(0,maxShow).forEach((sum,idx)=>{
-    const combo=reconstruct(sum,prev,filtered);
-    const card=document.createElement('div');card.className='card';
-    card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
-    const tbl=document.createElement('table');
-    // Group picked items by unit price
-    const countByPrice = new Map();
-    combo.items.forEach(it=>{ countByPrice.set(it.priceCents, (countByPrice.get(it.priceCents)||0) + it.qty); });
-    const rows = [...countByPrice.entries()].sort((a,b)=>b[0]-a[0]) // show higher price first
-      .map(([p,qty])=>{
-        const subtotal = p*qty;
-        // Build dropdown options for this unit price using the catalog
-        const byName = priceCatalog.get(p) || new Map();
-        const optionsHtml = [...byName.entries()].map(([name, locSet])=>{
-          const locs = [...locSet].join(', ');
-          return `<li><strong>${escapeHtml(name)}</strong><div class="note">${escapeHtml(locs)}</div></li>`;
+    const frag=document.createDocumentFragment();
+    const maxShow=50;
+    valid.slice(0,maxShow).forEach((sum,idx)=>{
+      const combo=reconstruct(sum,prev,filtered);
+      const card=document.createElement('div');card.className='card';
+      card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
+
+      // Group picked items by unit price
+      const tbl=document.createElement('table');
+      const countByPrice = new Map();
+      combo.items.forEach(it=>{ countByPrice.set(it.priceCents, (countByPrice.get(it.priceCents)||0) + it.qty); });
+      const rows = [...countByPrice.entries()].sort((a,b)=>b[0]-a[0])
+        .map(([p,qty])=>{
+          const subtotal = p*qty;
+          // dropdown for this unit price
+          const byName = priceCatalog.get(p) || new Map();
+          const optionsHtml = [...byName.entries()].map(([name, locSet])=>{
+            const locs = [...locSet].join(', ');
+            return `<li><strong>${escapeHtml(name)}</strong><div class=\"note\">${escapeHtml(locs)}</div></li>`;
+          }).join('');
+          const details = `<details><summary>Show items for price ${money(p)}</summary><ul style=\"margin:6px 0 0 18px;\">${optionsHtml||'<li class=\"note\">No items listed</li>'}</ul></details>`;
+          return `<tr><td>${money(p)}</td><td>${qty}</td><td>${money(subtotal)}</td><td>${details}</td></tr>`;
         }).join('');
-        const details = `<details><summary>Show items for price ${money(p)}</summary><ul style="margin:6px 0 0 18px;">${optionsHtml||'<li class="note">No items listed</li>'}</ul></details>`;
-        return `<tr><td>${money(p)}</td><td>${qty}</td><td>${money(subtotal)}</td><td>${details}</td></tr>`;
-      }).join('');
+      tbl.innerHTML=`<thead><tr><th>Unit Price</th><th>Qty</th><th>Subtotal</th><th>Options</th></tr></thead><tbody>${rows}</tbody>`;
 
-    tbl.innerHTML=`<thead><tr><th>Unit Price</th><th>Qty</th><th>Subtotal</th><th>Options</th></tr></thead><tbody>${rows}</tbody>`; }).join('')}</tbody>`;
-    card.appendChild(tbl);frag.appendChild(card);
-  });
-  if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
-  list.appendChild(frag);
-  // attach listeners to exclude toggles
-  document.querySelectorAll('input.exclude-toggle').forEach(function(cb){
-    cb.addEventListener('change', function(){
-      var k = this.getAttribute('data-exkey');
-      if(!k) return;
-      if(this.checked){ excluded.add(k); } else { excluded.delete(k); }
-      updateExcludeCount();
+      card.appendChild(tbl);
+      frag.appendChild(card);
     });
-  });
-  updateExcludeCount();
+    if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
+    list.appendChild(frag);
+    updateExcludeCount();
+  } catch (e){
+    console.error(e);
+    messages.appendChild(err('Unexpected error: '+ (e && e.message ? e.message : e)));
+  }
 }
 
-function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;'); }
-function escapeAttr(s){ return s.replace(/&/g,'&amp;').replace(/\"/g,'&quot;'); }
+// Initialize on load
+window.addEventListener('DOMContentLoaded', ()=>{
+  initMachineList();
+  initCategoryList();
+  updateExcludeCount();
+});
 </script>
 </body>
 </html>
