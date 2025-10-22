@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Best Combination Finder (Machines + Categories + Exclude)</title>
+  <title>Best Combination Finder (Machines + Categories)</title>
   <style>
     body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
     .container { max-width:1100px; margin:auto; padding:24px; }
@@ -81,13 +81,6 @@
 
     <div class="card">
       <h3>Best Solutions</h3>
-      <div id="excludeBar" class="row" style="margin-bottom:8px;">
-        <div class="note" id="excludeCount">Excluded items: 0</div>
-        <div style="margin-left:auto; display:flex; gap:8px;">
-          <button id="recalcExcluded">Recalculate without checked</button>
-          <button id="clearExcluded" class="secondary">Clear exclusions</button>
-        </div>
-      </div>
       <div id="list"></div>
     </div>
 
@@ -167,14 +160,9 @@ const statRemain=document.getElementById('statRemain');
 const statCount=document.getElementById('statCount');
 const btnRun=document.getElementById('run');
 const btnReset=document.getElementById('reset');
-const excludeCountEl=document.getElementById('excludeCount');
-const recalcExcluded=document.getElementById('recalcExcluded');
-const clearExcluded=document.getElementById('clearExcluded');
 
-// Exclusion helpers
-const excluded = new Set();
-function itemKey(o){ return o.name+'@@'+o.loc+'@@'+o.priceCents; }
-function updateExcludeCount(){ if(excludeCountEl) excludeCountEl.textContent = 'Excluded items: ' + excluded.size; }
+
+{ if(excludeCountEl) excludeCountEl.textContent = 'Excluded items: ' + excluded.size; }
 
 // Init checklists after DOM loaded
 function initMachineList(){
@@ -214,15 +202,12 @@ function getChecked(listEl){
   return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
 }
 
-btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';excluded.clear();updateExcludeCount();}
-if(recalcExcluded) recalcExcluded.onclick=()=>{ btnRun.click(); };
-if(clearExcluded) clearExcluded.onclick=()=>{ excluded.clear(); updateExcludeCount(); btnRun.click(); };
+btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
 
-btnRun.onclick=()=>{
-  try{
-    messages.innerHTML='';list.innerHTML='';
+
+btnRun.onclicssages.innerHTML='';list.innerHTML='';
     const budgetVal=Number(budgetInput.value)||0;
-    const allowVal=Number(allowInput.value)||0;
+    collowInput.value)||0;
     if(budgetVal<=0||budgetVal>=200){messages.appendChild(err('Budget must be between 0 and 200.'));return;}
     const budgetCents=Math.min(Math.round(budgetVal*100),19999);
     const allowCents=Math.max(0,Math.round(allowVal*100));
@@ -232,7 +217,7 @@ btnRun.onclick=()=>{
     if(selectedMachines.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
     if(selectedCats.length===0){messages.appendChild(err('Please select at least one category.'));return;}
 
-    const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat) && !excluded.has(itemKey(x)));
+    const filtered=items.filter(x=>selectedMachines.includes(x.loc) && selectedCats.includes(x.cat));
     if(filtered.length===0){messages.appendChild(err('No items match the selected machines and categories.'));return;}
 
     const priceCatalog = buildPriceCatalog(filtered);
@@ -276,7 +261,7 @@ btnRun.onclick=()=>{
     });
     if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
     list.appendChild(frag);
-    updateExcludeCount();
+    
   } catch (e){
     console.error(e);
     messages.appendChild(err('Unexpected error: '+ (e && e.message ? e.message : e)));
@@ -287,7 +272,9 @@ btnRun.onclick=()=>{
 window.addEventListener('DOMContentLoaded', ()=>{
   initMachineList();
   initCategoryList();
-  updateExcludeCount();
+});
+  initCategoryList();
+  
 });
 </script>
 </body>
