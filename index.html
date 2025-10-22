@@ -26,8 +26,27 @@
 </head>
 <body>
   <div class="container">
-    <h1>Best Combination Finder</h1>
-    <div class="note">Rule: Total budget &lt; 200 | Each item &lt; 50 | Repeat purchase allowed</div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;">
+      <div>
+        <h1>Best Combination Finder</h1>
+        <div class="note">Rule: Total budget &lt; 200 | Each item &lt; 50 | Repeat purchase allowed</div>
+      </div>
+      <a href="#" id="checkLink" style="text-decoration:underline;">Check balance</a>
+    </div>
+
+    <!-- Balance helper panel -->
+    <div id="balancePanel" class="card" style="display:none;">
+      <div style="display:grid;gap:12px;grid-template-columns:1fr auto;align-items:end;">
+        <div>
+          <label>Balance (NTD)</label>
+          <input id="balanceInput" type="number" step="0.5" placeholder="e.g., 128.5" />
+          <div class="note">Enter your current balance. Click "Apply to Budget" to use it as the total budget.</div>
+        </div>
+        <div style="align-self:end;">
+          <button id="applyBalance">Apply to Budget</button>
+        </div>
+      </div>
+    </div>
 
     <div class="grid grid-2 card">
       <div>
@@ -37,6 +56,18 @@
       <div>
         <label>Allowed Remaining Money (NTD)</label>
         <input id="allowLeft" type="number" step="0.5" value="3" />
+      </div>
+    </div>
+
+    <div class="grid grid-2 card">
+      <div>
+        <label>Vending Machine</label>
+        <select id="locFilter"></select>
+        <div class="note">Choose a machine to use its items only. "All" will use every item below.</div>
+      </div>
+      <div>
+        <label>Items (preloaded)</label>
+        <div class="note">Items are built-in and grouped by vending machine. No input required.</div>
       </div>
     </div>
 
@@ -59,21 +90,20 @@
   </div>
 
 <script>
-// ===== Internal item list =====
+// ===== Internal item list with locations =====
 const items = [
-  { name: "Apple", priceCents: 2500 },
-  { name: "Milk", priceCents: 4250 },
-  { name: "Bread", priceCents: 3800 },
-  { name: "Cookies", priceCents: 1500 },
-  { name: "Soy Milk", priceCents: 1850 },
-  { name: "Tea Egg", priceCents: 1200 },
-  { name: "Yogurt", priceCents: 2800 },
-  { name: "Instant Noodles", priceCents: 3200 }
+  { name: "Apple", priceCents: 2500, loc: "Machine A" },
+  { name: "Milk", priceCents: 4250, loc: "Machine B" },
+  { name: "Bread", priceCents: 3800, loc: "Machine A" },
+  { name: "Cookies", priceCents: 1500, loc: "Machine A" },
+  { name: "Soy Milk", priceCents: 1850, loc: "Machine C" },
+  { name: "Tea Egg", priceCents: 1200, loc: "Machine B" },
+  { name: "Yogurt", priceCents: 2800, loc: "Machine C" },
+  { name: "Instant Noodles", priceCents: 3200, loc: "Machine B" }
 ];
 
 function cents(x){return Math.round(Number(x)*100)}
 function money(c){return (c/100).toLocaleString('en-US',{style:'currency',currency:'TWD',minimumFractionDigits:2})}
-
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
 
@@ -93,7 +123,7 @@ function solveUnbounded(budget,items){
 function reconstruct(sum,prev,items){
   const m=new Map();let cur=sum;
   while(cur>0){const i=prev[cur];if(i<0)break;m.set(i,(m.get(i)||0)+1);cur-=items[i].priceCents;}
-  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents}));
+  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents,loc:items[i].loc}));
   return {items:arr,totalCents:sum};
 }
 
@@ -106,6 +136,24 @@ const statRemain=document.getElementById('statRemain');
 const statCount=document.getElementById('statCount');
 const btnRun=document.getElementById('run');
 const btnReset=document.getElementById('reset');
+const locFilter=document.getElementById('locFilter');
+const checkLink=document.getElementById('checkLink');
+const balancePanel=document.getElementById('balancePanel');
+const balanceInput=document.getElementById('balanceInput');
+const applyBalance=document.getElementById('applyBalance');
+
+// Populate location filter
+(function initLocations(){
+  const set = new Set(items.map(x=>x.loc));
+  locFilter.innerHTML = '';
+  const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='All'; locFilter.appendChild(optAll);
+  [...set].sort().forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; locFilter.appendChild(o); });
+  locFilter.value='__ALL__';
+})();
+
+// Balance link toggle
+checkLink.addEventListener('click', (e)=>{ e.preventDefault(); balancePanel.style.display = balancePanel.style.display==='none' ? 'block' : 'none'; });
+applyBalance.addEventListener('click', ()=>{ const v=Number(balanceInput.value)||0; if(v>0){ budgetInput.value=String(v); balancePanel.style.display='none'; }});
 
 btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
 
@@ -117,7 +165,11 @@ btnRun.onclick=()=>{
   const budgetCents=Math.min(cents(budgetVal),19999);
   const allowCents=Math.max(0,cents(allowVal));
 
-  const {dp,prev}=solveUnbounded(budgetCents,items);
+  // filter by location
+  const sel=locFilter.value; const filtered = sel==='__ALL__' ? items : items.filter(x=>x.loc===sel);
+  if(filtered.length===0){ messages.appendChild(err('No items in the selected vending machine.')); return; }
+
+  const {dp,prev}=solveUnbounded(budgetCents,filtered);
   const low=Math.max(0,budgetCents-allowCents);
   const valid=[];
   for(let s=budgetCents;s>=low;s--){if(dp[s])valid.push(s);}
@@ -129,10 +181,10 @@ btnRun.onclick=()=>{
   const frag=document.createDocumentFragment();
   const maxShow=50;
   valid.slice(0,maxShow).forEach((sum,idx)=>{
-    const combo=reconstruct(sum,prev,items);
+    const combo=reconstruct(sum,prev,filtered);
     const card=document.createElement('div');card.className='card';
     card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
-    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${it.name}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
+    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${it.name}</td><td>${it.loc}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
     card.appendChild(tbl);frag.appendChild(card);
   });
   if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
