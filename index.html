@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Best Combination Finder (Repeat Purchase + Remaining Allowance)</title>
+  <title>Best Combination Finder (Multi-select Machines)</title>
   <style>
     body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
     .container { max-width:1100px; margin:auto; padding:24px; }
     h1 { margin-bottom:4px; }
     .note { color:#555; font-size:14px; }
     .card { background:#fff; border:1px solid #ddd; border-radius:12px; padding:16px; margin-top:12px; }
-    input, textarea, button { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
+    input, button { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
     button { background:#2563eb; color:white; font-weight:600; border:none; cursor:pointer; margin-top:12px; }
     button.secondary { background:#111; }
     .grid { display:grid; gap:16px; }
@@ -22,6 +22,9 @@
     th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;}
     .warn{background:#fffbeb;border:1px solid #fef3c7;padding:8px;border-radius:8px;margin-top:6px;}
     .err{background:#fef2f2;border:1px solid #fee2e2;padding:8px;border-radius:8px;margin-top:6px;}
+    .checklist { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; }
+    label.machine { display:flex; align-items:center; gap:6px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; }
+    label.machine.dim { opacity:0.6; }
   </style>
 </head>
 <body>
@@ -31,44 +34,24 @@
         <h1>Best Combination Finder</h1>
         <div class="note">Rule: Total budget &lt; 200 | Each item &lt; 50 | Repeat purchase allowed</div>
       </div>
-      <a href="#" id="checkLink" style="text-decoration:underline;">Check balance</a>
-    </div>
-
-    <!-- Balance helper panel -->
-    <div id="balancePanel" class="card" style="display:none;">
-      <div style="display:grid;gap:12px;grid-template-columns:1fr auto;align-items:end;">
-        <div>
-          <label>Balance (NTD)</label>
-          <input id="balanceInput" type="number" step="0.5" placeholder="e.g., 128.5" />
-          <div class="note">Enter your current balance. Click "Apply to Budget" to use it as the total budget.</div>
-        </div>
-        <div style="align-self:end;">
-          <button id="applyBalance">Apply to Budget</button>
-        </div>
-      </div>
+      <a href="https://example.com/balance" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
     </div>
 
     <div class="grid grid-2 card">
       <div>
-        <label>Total Budget (NTD)</label>
+        <label>Total Budget</label>
         <input id="budget" type="number" step="0.5" value="120" />
       </div>
       <div>
-        <label>Allowed Remaining Money (NTD)</label>
+        <label>Allowed Remaining Money</label>
         <input id="allowLeft" type="number" step="0.5" value="3" />
       </div>
     </div>
 
-    <div class="grid grid-2 card">
-      <div>
-        <label>Vending Machine</label>
-        <select id="locFilter"></select>
-        <div class="note">Choose a machine to use its items only. "All" will use every item below.</div>
-      </div>
-      <div>
-        <label>Items (preloaded)</label>
-        <div class="note">Items are built-in and grouped by vending machine. No input required.</div>
-      </div>
+    <div class="card">
+      <label>Select Vending Machines</label>
+      <div class="note">Select one or more machines (the more expensive one is unchecked by default).</div>
+      <div id="machineList" class="checklist"></div>
     </div>
 
     <div class="card">
@@ -90,20 +73,27 @@
   </div>
 
 <script>
-// ===== Internal item list with locations =====
 const items = [
   { name: "Apple", priceCents: 2500, loc: "Machine A" },
+  { name: "Apple", priceCents: 2600, loc: "Machine B" },
   { name: "Milk", priceCents: 4250, loc: "Machine B" },
+  { name: "Milk", priceCents: 4500, loc: "Machine Premium" },
   { name: "Bread", priceCents: 3800, loc: "Machine A" },
+  { name: "Bread", priceCents: 3700, loc: "Machine C" },
   { name: "Cookies", priceCents: 1500, loc: "Machine A" },
+  { name: "Cookies", priceCents: 1500, loc: "Machine B" },
   { name: "Soy Milk", priceCents: 1850, loc: "Machine C" },
   { name: "Tea Egg", priceCents: 1200, loc: "Machine B" },
+  { name: "Tea Egg", priceCents: 1400, loc: "Machine Premium" },
   { name: "Yogurt", priceCents: 2800, loc: "Machine C" },
-  { name: "Instant Noodles", priceCents: 3200, loc: "Machine B" }
+  { name: "Instant Noodles", priceCents: 3200, loc: "Machine B" },
+  { name: "Instant Noodles", priceCents: 3100, loc: "Machine C" }
 ];
 
+const EXCLUDED_BY_DEFAULT = new Set(['Machine Premium']);
+
 function cents(x){return Math.round(Number(x)*100)}
-function money(c){return (c/100).toLocaleString('en-US',{style:'currency',currency:'TWD',minimumFractionDigits:2})}
+function money(c){return (c/100).toFixed(2)}
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
 
@@ -127,6 +117,7 @@ function reconstruct(sum,prev,items){
   return {items:arr,totalCents:sum};
 }
 
+const machineList=document.getElementById('machineList');
 const budgetInput=document.getElementById('budget');
 const allowInput=document.getElementById('allowLeft');
 const messages=document.getElementById('messages');
@@ -136,24 +127,27 @@ const statRemain=document.getElementById('statRemain');
 const statCount=document.getElementById('statCount');
 const btnRun=document.getElementById('run');
 const btnReset=document.getElementById('reset');
-const locFilter=document.getElementById('locFilter');
-const checkLink=document.getElementById('checkLink');
-const balancePanel=document.getElementById('balancePanel');
-const balanceInput=document.getElementById('balanceInput');
-const applyBalance=document.getElementById('applyBalance');
 
-// Populate location filter
-(function initLocations(){
-  const set = new Set(items.map(x=>x.loc));
-  locFilter.innerHTML = '';
-  const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='All'; locFilter.appendChild(optAll);
-  [...set].sort().forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; locFilter.appendChild(o); });
-  locFilter.value='__ALL__';
+(function initMachineList(){
+  const locs=[...new Set(items.map(x=>x.loc))].sort();
+  machineList.innerHTML='';
+  locs.forEach(loc=>{
+    const label=document.createElement('label');
+    label.className='machine'+(EXCLUDED_BY_DEFAULT.has(loc)?' dim':'');
+    const cb=document.createElement('input');
+    cb.type='checkbox';
+    cb.value=loc;
+    cb.checked=!EXCLUDED_BY_DEFAULT.has(loc);
+    cb.addEventListener('change',()=>label.classList.toggle('dim',!cb.checked));
+    label.appendChild(cb);
+    const span=document.createElement('span');span.textContent=loc;label.appendChild(span);
+    machineList.appendChild(label);
+  });
 })();
 
-// Balance link toggle
-checkLink.addEventListener('click', (e)=>{ e.preventDefault(); balancePanel.style.display = balancePanel.style.display==='none' ? 'block' : 'none'; });
-applyBalance.addEventListener('click', ()=>{ const v=Number(balanceInput.value)||0; if(v>0){ budgetInput.value=String(v); balancePanel.style.display='none'; }});
+function getSelectedMachines(){
+  return Array.from(machineList.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
+}
 
 btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
 
@@ -165,15 +159,16 @@ btnRun.onclick=()=>{
   const budgetCents=Math.min(cents(budgetVal),19999);
   const allowCents=Math.max(0,cents(allowVal));
 
-  // filter by location
-  const sel=locFilter.value; const filtered = sel==='__ALL__' ? items : items.filter(x=>x.loc===sel);
-  if(filtered.length===0){ messages.appendChild(err('No items in the selected vending machine.')); return; }
+  const selected=getSelectedMachines();
+  if(selected.length===0){messages.appendChild(err('Please select at least one machine.'));return;}
+  const filtered=items.filter(x=>selected.includes(x.loc));
+  if(filtered.length===0){messages.appendChild(err('No items in selected machines.'));return;}
 
   const {dp,prev}=solveUnbounded(budgetCents,filtered);
   const low=Math.max(0,budgetCents-allowCents);
   const valid=[];
   for(let s=budgetCents;s>=low;s--){if(dp[s])valid.push(s);}
-  if(valid.length===0){messages.appendChild(err('No combination found within the allowed remaining money.'));return;}
+  if(valid.length===0){messages.appendChild(err('No combination found.'));return;}
   statBest.textContent=money(valid[0]);
   statRemain.textContent=money(budgetCents-valid[0]);
   statCount.textContent=valid.length;
