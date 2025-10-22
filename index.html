@@ -1,247 +1,142 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>最省剩餘金額（可重複購買 + 剩餘容許）</title>
+  <title>Best Combination Finder (Repeat Purchase + Remaining Allowance)</title>
   <style>
-    :root {
-      --bg: #f7fafc; --fg:#111827; --muted:#6b7280; --accent:#3b82f6; --card:#ffffff; --border:#e5e7eb; --warn:#f59e0b; --err:#ef4444;
-    }
-    body { margin:0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', Arial, sans-serif; background:var(--bg); color:var(--fg); }
-    .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-    h1 { font-size: 24px; margin: 0 0 8px; }
-    .muted { color: var(--muted); font-size: 14px; }
-    .grid { display: grid; gap: 16px; }
-    @media (min-width: 768px) { .grid-2 { grid-template-columns: 1fr 1fr; } .grid-3 { grid-template-columns: 1fr 1fr 1fr; }}
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; }
-    input, textarea, button, select { width: 100%; font-size: 14px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; box-sizing: border-box; }
-    input:focus, textarea:focus { outline: 2px solid var(--accent); }
-    button { background: var(--accent); color: white; cursor: pointer; border: none; font-weight: 600; }
-    button.secondary { background: #111827; }
-    .stat { border-radius: 12px; border: 1px solid var(--border); padding: 12px; background: #f9fafb; }
-    .stat .label { font-size: 12px; color: var(--muted); }
-    .stat .value { font-size: 18px; font-weight: 700; margin-top: 4px; }
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; }
-    thead th { background: #fff; }
-    .row { display:flex; gap:12px; align-items:center; }
-    .warn { background:#fffbeb; border:1px solid #fef3c7; color:#78350f; border-radius:12px; padding:10px 12px; }
-    .err { background:#fef2f2; border:1px solid #fee2e2; color:#7f1d1d; border-radius:12px; padding:10px 12px; }
-    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid var(--border); background:#fff; }
+    body { font-family: Arial, sans-serif; background:#f8fafc; color:#111; margin:0; }
+    .container { max-width:1100px; margin:auto; padding:24px; }
+    h1 { margin-bottom:4px; }
+    .note { color:#555; font-size:14px; }
+    .card { background:#fff; border:1px solid #ddd; border-radius:12px; padding:16px; margin-top:12px; }
+    input, textarea, button { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
+    button { background:#2563eb; color:white; font-weight:600; border:none; cursor:pointer; margin-top:12px; }
+    button.secondary { background:#111; }
+    .grid { display:grid; gap:16px; }
+    @media (min-width:768px){ .grid-2{ grid-template-columns:1fr 1fr; } .grid-3{ grid-template-columns:1fr 1fr 1fr; } }
+    .stat { border:1px solid #ddd; border-radius:8px; padding:10px; background:#f9fafb; }
+    .stat .label{color:#555;font-size:12px;}
+    .stat .value{font-size:18px;font-weight:700;}
+    table{width:100%;border-collapse:collapse;margin-top:8px;}
+    th,td{border-bottom:1px solid #eee;padding:8px;text-align:left;}
+    .warn{background:#fffbeb;border:1px solid #fef3c7;padding:8px;border-radius:8px;margin-top:6px;}
+    .err{background:#fef2f2;border:1px solid #fee2e2;padding:8px;border-radius:8px;margin-top:6px;}
   </style>
 </head>
 <body>
   <div class="container">
-    <header class="row" style="justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+    <h1>Best Combination Finder</h1>
+    <div class="note">Rule: Total budget &lt; 200 | Each item &lt; 50 | Repeat purchase allowed</div>
+
+    <div class="grid grid-2 card">
       <div>
-        <h1>最省剩餘金額（GitHub Pages 單檔版）</h1>
-        <div class="muted">規則：金錢 < 200 元、每件商品 < 50 元｜模式：<span class="pill">可重複購買</span></div>
+        <label>Total Budget (NTD)</label>
+        <input id="budget" type="number" step="0.5" value="120" />
       </div>
-      <a class="pill" href="#" id="fillDemo">一鍵填入範例</a>
-    </header>
+      <div>
+        <label>Allowed Remaining Money (NTD)</label>
+        <input id="allowLeft" type="number" step="0.5" value="3" />
+      </div>
+    </div>
 
-    <section class="grid grid-2" style="margin-top:16px;">
-      <div class="card">
-        <label>預算（元）</label>
-        <input id="budget" type="number" step="0.5" placeholder="例如：120" value="199" />
-        <div class="muted">需 < 200；可輸入小數，內部以「分」精準計算。</div>
-      </div>
-      <div class="card">
-        <label>允許的剩餘金額上限（元）</label>
-        <input id="leftoverMax" type="number" step="0.5" placeholder="例如：3（代表剩下 ≤ 3 元即可）" value="2" />
-        <div class="muted">演算法會列出所有「總額在 [預算 − 上限, 預算]」範圍內的最佳解（由高到低）。</div>
-      </div>
-    </section>
+    <div class="card">
+      <button id="run">Calculate Best Combination</button>
+      <button id="reset" class="secondary">Clear Result</button>
+      <div id="messages"></div>
+    </div>
 
-    <section class="grid grid-2" style="margin-top:16px;">
-      <div class="card">
-        <label>商品清單（每行：名稱, 價格 或 只寫價格）</label>
-        <textarea id="items" rows="10" placeholder="蘋果, 25\n牛奶, 42.5\n38\n餅乾, 15"></textarea>
-        <div class="muted">未填名稱會自動命名為「商品1、商品2…」。每件需 < 50 元。</div>
-      </div>
-      <div class="card">
-        <div class="row">
-          <button id="run">🔍 計算最佳組合</button>
-          <button id="reset" class="secondary">↺ 清空結果</button>
-        </div>
-        <div id="messages" style="margin-top:12px; display:grid; gap:8px;"></div>
-        <div class="grid grid-3" style="margin-top:12px;">
-          <div class="stat"><div class="label">最佳總額</div><div class="value" id="statBest">—</div></div>
-          <div class="stat"><div class="label">最小剩餘</div><div class="value" id="statLeft">—</div></div>
-          <div class="stat"><div class="label">符合方案數</div><div class="value" id="statCnt">—</div></div>
-        </div>
-      </div>
-    </section>
+    <div class="grid grid-3 card">
+      <div class="stat"><div class="label">Best Total</div><div class="value" id="statBest">—</div></div>
+      <div class="stat"><div class="label">Remaining</div><div class="value" id="statRemain">—</div></div>
+      <div class="stat"><div class="label">Combinations</div><div class="value" id="statCount">—</div></div>
+    </div>
 
-    <section class="card" style="margin-top:16px;">
-      <h3 style="margin:0 0 12px;">方案列表（由總額高 → 低）</h3>
+    <div class="card">
+      <h3>Best Solutions</h3>
       <div id="list"></div>
-    </section>
-
-    <footer style="margin-top:24px;" class="muted">
-      © 最省剩餘金額小幫手 · 可重複購買（Unbounded）版 · 可直接部署到 GitHub Pages
-    </footer>
+    </div>
   </div>
 
 <script>
-// ===== 工具：格式化幣值 =====
-function toCents(x){ return Math.round(Number(x) * 100); }
-function money(c){ return (c/100).toLocaleString('zh-TW',{style:'currency',currency:'TWD',minimumFractionDigits:2}); }
+// ===== Internal item list =====
+const items = [
+  { name: "Apple", priceCents: 2500 },
+  { name: "Milk", priceCents: 4250 },
+  { name: "Bread", priceCents: 3800 },
+  { name: "Cookies", priceCents: 1500 },
+  { name: "Soy Milk", priceCents: 1850 },
+  { name: "Tea Egg", priceCents: 1200 },
+  { name: "Yogurt", priceCents: 2800 },
+  { name: "Instant Noodles", priceCents: 3200 }
+];
 
-// ===== 解析輸入 =====
-function parseInputs(){
-  const msgs = [];
-  const warns = [];
+function cents(x){return Math.round(Number(x)*100)}
+function money(c){return (c/100).toLocaleString('en-US',{style:'currency',currency:'TWD',minimumFractionDigits:2})}
 
-  const budgetStr = document.getElementById('budget').value.trim();
-  if(!budgetStr){ return {ok:false, msgs:[err('請輸入預算（元）。')]}; }
-  const budget = Number(budgetStr);
-  if(!isFinite(budget) || budget<=0){ return {ok:false, msgs:[err('預算需為大於 0 的數字。')]}; }
-  if(budget >= 200){ warns.push(warn('預算需 < 200 元，將以 199.99 元計算。')); }
-  const budgetCents = Math.min(toCents(budget), 19999);
+function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
+function err(msg){const d=document.createElement('div');d.className='err';d.textContent='❌ '+msg;return d}
 
-  const leftStr = document.getElementById('leftoverMax').value.trim();
-  const leftoverMax = Math.max(0, Number(leftStr || 0));
-  const leftoverMaxCents = toCents(leftoverMax);
-
-  const raw = document.getElementById('items').value.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-  if(raw.length===0){ return {ok:false, msgs:[err('請至少輸入 1 個商品。')]}; }
-
-  const items=[];
-  for(let i=0;i<raw.length;i++){
-    let name = `商品${i+1}`; let priceStr = raw[i];
-    if(raw[i].includes(',')){
-      const parts = raw[i].split(',');
-      name = (parts[0]||name).trim();
-      priceStr = parts.slice(1).join(',').trim();
-    }
-    const price = Number(priceStr);
-    if(!isFinite(price) || price<=0){ warns.push(warn(`第 ${i+1} 行價格無效，已略過（內容：「${raw[i]}」）`)); continue; }
-    if(price >= 50){ warns.push(warn(`「${name}」單價需 < 50 元，已略過（${price}）。`)); continue; }
-    items.push({id:i, name, priceCents: toCents(price)});
-  }
-  if(items.length===0){ return {ok:false, msgs:[err('沒有符合規則（單品 < 50 元）的商品。')]}; }
-
-  return { ok:true, budgetCents, leftoverMaxCents, items, msgs:[...warns] };
-}
-
-function warn(text){ const d=document.createElement('div'); d.className='warn'; d.textContent='⚠️ '+text; return d; }
-function err(text){ const d=document.createElement('div'); d.className='err'; d.textContent='❌ '+text; return d; }
-
-// ===== 演算法：可重複購買（Unbounded），列出所有可達總額 =====
-function solveUnboundedAll(budgetCents, items){
-  const dp = new Array(budgetCents+1).fill(false); dp[0]=true;
-  const prev = new Array(budgetCents+1).fill(-1);
-
-  for(let s=0;s<=budgetCents;s++){
-    if(!dp[s]) continue;
+function solveUnbounded(budget,items){
+  const dp=new Array(budget+1).fill(false);dp[0]=true;
+  const prev=new Array(budget+1).fill(-1);
+  for(let s=0;s<=budget;s++){
+    if(!dp[s])continue;
     for(let i=0;i<items.length;i++){
-      const ns = s + items[i].priceCents;
-      if(ns<=budgetCents && !dp[ns]){ dp[ns]=true; prev[ns]=i; }
+      const ns=s+items[i].priceCents;
+      if(ns<=budget && !dp[ns]){dp[ns]=true;prev[ns]=i;}
     }
   }
-
-  return {reachable: dp, prev};
+  return {dp,prev};
 }
 
-function reconstructCombo(sum, prev, items){
-  const m=new Map(); let cur=sum;
-  while(cur>0){ const i=prev[cur]; if(i<0) break; m.set(i,(m.get(i)||0)+1); cur-=items[i].priceCents; }
-  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name, qty:q, priceCents:items[i].priceCents}));
-  arr.sort((a,b)=> a.name.localeCompare(b.name,'zh-Hant'));
-  return { items: arr, totalCents: sum };
+function reconstruct(sum,prev,items){
+  const m=new Map();let cur=sum;
+  while(cur>0){const i=prev[cur];if(i<0)break;m.set(i,(m.get(i)||0)+1);cur-=items[i].priceCents;}
+  const arr=[...m.entries()].map(([i,q])=>({name:items[i].name,qty:q,priceCents:items[i].priceCents}));
+  return {items:arr,totalCents:sum};
 }
 
-// ===== UI 綁定 =====
-const btnRun = document.getElementById('run');
-const btnReset = document.getElementById('reset');
-const messages = document.getElementById('messages');
-const list = document.getElementById('list');
-const statBest = document.getElementById('statBest');
-const statLeft = document.getElementById('statLeft');
-const statCnt = document.getElementById('statCnt');
-const fillDemo = document.getElementById('fillDemo');
+const budgetInput=document.getElementById('budget');
+const allowInput=document.getElementById('allowLeft');
+const messages=document.getElementById('messages');
+const list=document.getElementById('list');
+const statBest=document.getElementById('statBest');
+const statRemain=document.getElementById('statRemain');
+const statCount=document.getElementById('statCount');
+const btnRun=document.getElementById('run');
+const btnReset=document.getElementById('reset');
 
-fillDemo.addEventListener('click', (e)=>{
-  e.preventDefault();
-  document.getElementById('budget').value = '120';
-  document.getElementById('leftoverMax').value = '3';
-  document.getElementById('items').value = [
-    '蘋果, 25', '牛奶, 42.5', '麵包, 38', '餅乾, 15', '豆漿, 18.5', '茶葉蛋, 12', '優格, 28', '泡麵, 32'
-  ].join('\n');
-});
+btnReset.onclick=()=>{messages.innerHTML='';list.innerHTML='';statBest.textContent='—';statRemain.textContent='—';statCount.textContent='—';}
 
-btnReset.addEventListener('click', ()=>{
-  messages.innerHTML=''; list.innerHTML='';
-  statBest.textContent='—'; statLeft.textContent='—'; statCnt.textContent='—';
-});
+btnRun.onclick=()=>{
+  messages.innerHTML='';list.innerHTML='';
+  const budgetVal=Number(budgetInput.value)||0;
+  const allowVal=Number(allowInput.value)||0;
+  if(budgetVal<=0||budgetVal>=200){messages.appendChild(err('Budget must be between 0 and 200.'));return;}
+  const budgetCents=Math.min(cents(budgetVal),19999);
+  const allowCents=Math.max(0,cents(allowVal));
 
-btnRun.addEventListener('click', ()=>{
-  messages.innerHTML=''; list.innerHTML='';
-  const parsed = parseInputs();
-  if(!parsed.ok){ parsed.msgs.forEach(n=>messages.appendChild(n)); return; }
-  parsed.msgs.forEach(n=>messages.appendChild(n));
+  const {dp,prev}=solveUnbounded(budgetCents,items);
+  const low=Math.max(0,budgetCents-allowCents);
+  const valid=[];
+  for(let s=budgetCents;s>=low;s--){if(dp[s])valid.push(s);}
+  if(valid.length===0){messages.appendChild(err('No combination found within the allowed remaining money.'));return;}
+  statBest.textContent=money(valid[0]);
+  statRemain.textContent=money(budgetCents-valid[0]);
+  statCount.textContent=valid.length;
 
-  const {budgetCents, leftoverMaxCents, items} = parsed;
-  const {reachable, prev} = solveUnboundedAll(budgetCents, items);
-
-  const lo = Math.max(0, budgetCents - leftoverMaxCents);
-  const goodSums = [];
-  for(let s=budgetCents; s>=lo; s--){ if(reachable[s]) goodSums.push(s); }
-
-  if(goodSums.length===0){
-    messages.appendChild(err('在目前的「剩餘上限」下沒有可行組合。建議稍微放寬上限或調整商品價格。'));
-    statBest.textContent='—'; statLeft.textContent='—'; statCnt.textContent='0';
-    return;
-  }
-
-  statBest.textContent = money(goodSums[0]);
-  statLeft.textContent = money(budgetCents - goodSums[0]);
-  statCnt.textContent = String(goodSums.length);
-
-  // 產出列表（最多顯示前 50 個）
-  const maxShow = 50;
-  const frag = document.createDocumentFragment();
-  goodSums.slice(0, maxShow).forEach((sum, idx)=>{
-    const combo = reconstructCombo(sum, prev, items);
-    const card = document.createElement('div');
-    card.className='card';
-    card.innerHTML = `
-      <div class="row" style="justify-content: space-between;">
-        <div><strong>方案 #${idx+1}</strong></div>
-        <div class="muted">總額：${money(combo.totalCents)}｜剩餘：${money(budgetCents - combo.totalCents)}</div>
-      </div>
-      <div style="overflow:auto; margin-top:8px;">
-        <table>
-          <thead><tr><th>品名</th><th>單價</th><th>數量</th><th>小計</th></tr></thead>
-          <tbody>
-            ${combo.items.map(it=>`
-              <tr>
-                <td>${escapeHtml(it.name)}</td>
-                <td>${money(it.priceCents)}</td>
-                <td>${it.qty}</td>
-                <td>${money(it.priceCents * it.qty)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-    frag.appendChild(card);
+  const frag=document.createDocumentFragment();
+  const maxShow=50;
+  valid.slice(0,maxShow).forEach((sum,idx)=>{
+    const combo=reconstruct(sum,prev,items);
+    const card=document.createElement('div');card.className='card';
+    card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
+    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${it.name}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
+    card.appendChild(tbl);frag.appendChild(card);
   });
-
-  if(goodSums.length>maxShow){
-    const tip=document.createElement('div'); tip.className='warn';
-    tip.textContent = `⚠️ 可行方案很多（${goodSums.length} 組），僅顯示前 ${maxShow} 組。請提高剩餘上限或調整商品以縮小範圍。`;
-    messages.appendChild(tip);
-  }
-
+  if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
   list.appendChild(frag);
-});
-
-function escapeHtml(s){
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
 }
 </script>
 </body>
