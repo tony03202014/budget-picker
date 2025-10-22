@@ -221,7 +221,7 @@ btnRun.onclick=()=>{
     const combo=reconstruct(sum,prev,filtered);
     const card=document.createElement('div');card.className='card';
     card.innerHTML=`<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
-    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Category</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.cat)}</td><td>${escapeHtml(it.loc)}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
+    const tbl=document.createElement('table');tbl.innerHTML=`<thead><tr><th>Item</th><th>Location</th><th>Price</th><th>Qty</th><th>Subtotal</th></tr></thead><tbody>${combo.items.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${escapeHtml(it.loc)}</td><td>${money(it.priceCents)}</td><td>${it.qty}</td><td>${money(it.priceCents*it.qty)}</td></tr>`).join('')}</tbody>`;
     card.appendChild(tbl);frag.appendChild(card);
   });
   if(valid.length>maxShow){messages.appendChild(warn(`Too many combinations (${valid.length}). Showing top ${maxShow}.`));}
