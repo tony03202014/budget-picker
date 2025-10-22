@@ -113,21 +113,36 @@ function err(msg){const d=document.createElement('div');d.className='err';d.text
 function warn(msg){const d=document.createElement('div');d.className='warn';d.textContent='⚠️ '+msg;return d}
 function escapeHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;');}
 function solveUnbounded(budget, items){
-  // Bias toward cheaper unit prices when multiple ways reach the same sum.
-  // We'll keep, for each reachable sum, the price of the last item used; if a new path
-  // reaches the same sum with a cheaper last item, we prefer that path.
+  // DP with preference for cheaper unit prices when multiple paths reach the same sum
   const dp = new Array(budget + 1).fill(false); dp[0] = true;
-  const prev = new Array(budget + 1).fill(-1); // index of item used to reach sum
-  const lastPrice = new Array(budget + 1).fill(Infinity); // unit price of item used at this sum
+  const prev = new Array(budget + 1).fill(-1);  // item index used to reach sum
+  const lastPrice = new Array(budget + 1).fill(Number.POSITIVE_INFINITY);
+  lastPrice[0] = 0;
 
-  // Ensure stable preference: iterate items sorted by ascending price (then name)
-  const order = [...items.keys()].sort((i,j)=>{
+  // stable order: by price asc, then name, then loc
+  const order = items.map((_, i) => i).sort((i, j) => {
     const pi = items[i].priceCents, pj = items[j].priceCents;
     if (pi !== pj) return pi - pj;
     const ni = items[i].name.localeCompare(items[j].name);
     if (ni !== 0) return ni;
     return items[i].loc.localeCompare(items[j].loc);
   });
+
+  for (let s = 0; s <= budget; s++) {
+    if (!dp[s]) continue;
+    for (const i of order) {
+      const ns = s + items[i].priceCents;
+      if (ns > budget) continue;
+      if (!dp[ns]) {
+        dp[ns] = true; prev[ns] = i; lastPrice[ns] = items[i].priceCents;
+      } else if (items[i].priceCents < lastPrice[ns]) {
+        // prefer path that uses a cheaper unit price at this step
+        prev[ns] = i; lastPrice[ns] = items[i].priceCents;
+      }
+    }
+  }
+  return { dp, prev };
+});
 
   for(let s = 0; s <= budget; s++){
     if(!dp[s]) continue;
