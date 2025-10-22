@@ -10,7 +10,7 @@
     h1 { margin-bottom:4px; }
     .note { color:#555; font-size:14px; }
     .card { background:#fff; border:1px solid #ddd; border-radius:12px; padding:16px; margin-top:12px; }
-    input, button, select { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
+    input:not([type="checkbox"]), button, select { width:100%; box-sizing:border-box; padding:10px; margin-top:6px; border:1px solid #ccc; border-radius:8px; }
     button { background:#2563eb; color:white; font-weight:600; border:none; cursor:pointer; margin-top:12px; }
     button.secondary { background:#111; }
     .grid { display:grid; gap:16px; }
@@ -24,7 +24,7 @@
     .err{background:#fef2f2;border:1px solid #fee2e2;padding:8px;border-radius:8px;margin-top:6px;}
     .ok{background:#ecfdf5;border:1px solid #d1fae5;padding:8px;border-radius:8px;margin-top:6px;}
     .checklist { display:flex; flex-wrap:wrap; gap:10px; }
-    label.machine, label.category { display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; cursor:pointer; min-width:140px; }
+    label.machine, label.category { display:inline-flex; align-items:center; gap:8px; border:1px solid #ccc; border-radius:8px; padding:6px 10px; background:#fff; cursor:pointer; min-width:140px; user-select:none; }
     label.machine.dim, label.category.dim { opacity:0.6; }
     label.machine input[type="checkbox"], label.category input[type="checkbox"] { width:18px; height:18px; flex-shrink:0; }
     label.machine span, label.category span { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
