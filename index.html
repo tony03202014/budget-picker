@@ -35,13 +35,14 @@
 </head>
 <body>
   <div class="container">
-    <div class="topbar">Made by Tony Lu</div>
+    <div class="topbar">Created by Tony Lu (2025)</div>
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <div>
         <h1>Best Combination Finder</h1>
-        <div class="note">Rule: Total budget < 200 | Each item < 50 | Repeat purchase allowed</div>
       </div>
-      <a href="https://example.com/balance" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
+      <a href="https://pay.yallvend.com/app/point_check/point_check?key=35269efad18c5c3c8021107649e65eb73756d5920dcc7a7e4ab724fec6b4743f&country=tw
+" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
+      <div class="note">Balance checking UserName: W + ID</div>
     </div>
 
     <div class="grid grid-2 card">
@@ -91,8 +92,8 @@
 
     <div class="card">
       <h3>Report anomaly / suggestion</h3>
-      <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, UI suggestions).</div>
-      <a id="reportLink" href="https://example.com/your-google-form" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
+      <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, suggestions).</div>
+      <a id="reportLink" href="https://docs.google.com/forms/d/e/1FAIpQLSf1AJok723JrwLvD0LFKKWBkxCgJX4xoHJpcRhkRWByDGqFhA/viewform?usp=header" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
     </div>
   </div>
 
@@ -342,7 +343,7 @@
       messages.innerHTML=''; list.innerHTML='';
       const budgetVal = Number(budgetInput.value)||0;
       const allowVal = Number(allowInput.value)||0;
-      if(budgetVal<=0 || budgetVal>=200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
+      if(budgetVal<=0 || budgetVal>200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
       const budgetCents = Math.round(budgetVal*100);
       const allowCents = Math.round(allowVal*100);
 
