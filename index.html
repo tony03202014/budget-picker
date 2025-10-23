@@ -51,7 +51,7 @@
       </div>
       <div>
         <label>Allowed Remaining Money</label>
-        <input id="allowLeft" type="number" step="1" value="0" />
+        <input id="allowLeft" type="number" step="1" value="3" />
       </div>
     </div>
 
@@ -106,6 +106,20 @@
       <h3>Report anomaly / suggestion</h3>
       <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, UI suggestions).</div>
       <a id="reportLink" href="https://example.com/your-google-form" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
+    </div>
+    <!-- Browse items by vending machine (new) -->
+    <div class="card">
+      <h3>Browse items by vending machine</h3>
+      <div class="row" style="justify-content:space-between; align-items:end;">
+        <div style="flex:1; min-width:220px;">
+          <label>Vending machine</label>
+          <select id="browseMachine"></select>
+        </div>
+        <div>
+          <button id="browseRefresh" class="secondary">Refresh list</button>
+        </div>
+      </div>
+      <div id="machineBrowser" style="margin-top:8px;"></div>
     </div>
   </div>
 
@@ -199,6 +213,9 @@
   const browseSelect = byId('browseMachine');
   const browseRefresh = byId('browseRefresh');
   const machineBrowser = byId('machineBrowser');
+  const browseSelect = byId('browseMachine');
+  const browseRefresh = byId('browseRefresh');
+  const machineBrowser = byId('machineBrowser');
 
   // Exclusions by unit price
   const excludedPrices = new Set();
@@ -244,14 +261,6 @@
   }
 
   function initCategoryList(){
-    if (!categoryList) return;
-    categoryList.innerHTML = CATEGORIES.map(cat => `
-      <label class="category">
-        <input type="checkbox" value="${escapeHtml(cat)}" ${EXCLUDED_CATS_BY_DEFAULT.has(cat)?'':'checked'}>
-        <span>${escapeHtml(cat)}</span>
-      </label>
-    `).join('');
-  }{
     categoryList.innerHTML = '';
     CATEGORIES.forEach(cat=>{
       const label=document.createElement('label'); label.className='category';
@@ -260,7 +269,47 @@
       label.appendChild(cb); label.appendChild(span);
       categoryList.appendChild(label);
     });
-  });
+  }
+
+  // === Browse helper ===
+  function initBrowseMachines(){
+    if(!browseSelect) return;
+    const locs = [...new Set(items.map(x=>x.loc))].sort();
+    browseSelect.innerHTML = '';
+    const optAll = document.createElement('option');
+    optAll.value='__ALL__'; optAll.textContent='All machines';
+    browseSelect.appendChild(optAll);
+    locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; browseSelect.appendChild(o); });
+    browseSelect.value='__ALL__';
+  }
+
+  function renderMachineBrowser(){
+    if(!machineBrowser) return;
+    const selected = browseSelect && browseSelect.value ? browseSelect.value : '__ALL__';
+    const selectedCats = getChecked(categoryList);
+    const filtered = items.filter(it => (selected==='__ALL__' || it.loc===selected) && (selectedCats.length===0 || selectedCats.includes(it.cat)));
+    const byMachine = new Map();
+    for(const it of filtered){ if(!byMachine.has(it.loc)) byMachine.set(it.loc, []); byMachine.get(it.loc).push(it); }
+
+    const machines = [...byMachine.keys()].sort();
+    if(machines.length===0){ machineBrowser.innerHTML = '<div class="note">No items with current filters.</div>'; return; }
+
+    const container = document.createElement('div');
+    machines.forEach(loc =>{
+      const listForLoc = byMachine.get(loc).slice().sort((a,b)=>{
+        if(a.priceCents!==b.priceCents) return a.priceCents-b.priceCents;
+        const n=a.name.localeCompare(b.name); if(n!==0) return n; return a.cat.localeCompare(b.cat);
+      });
+      const d = document.createElement('details'); d.open = (selected!=='__ALL__');
+      d.innerHTML = `<summary><strong>${escapeHtml(loc)}</strong> — ${listForLoc.length} items</summary>`;
+      const tbl = document.createElement('table');
+      const rows = listForLoc.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${money(it.priceCents)}</td><td>${escapeHtml(it.cat)}</td></tr>`).join('');
+      tbl.innerHTML = `<thead><tr><th>Item</th><th>Price</th><th>Category</th></tr></thead><tbody>${rows}</tbody>`;
+      d.appendChild(tbl);
+      container.appendChild(d);
+    });
+    machineBrowser.innerHTML='';
+    machineBrowser.appendChild(container);
   }
 
   function getChecked(listEl){
@@ -344,6 +393,12 @@
         const p = Number(cb.getAttribute('data-price'));
         if(cb.checked) excludedPrices.add(p); else excludedPrices.delete(p);
         updateExcludeCount();
+    // init browse
+    initBrowseMachines();
+    renderMachineBrowser();
+    if(browseSelect) browseSelect.addEventListener('change', renderMachineBrowser);
+    if(browseRefresh) browseRefresh.addEventListener('click', renderMachineBrowser);
+    if(categoryList) categoryList.addEventListener('change', renderMachineBrowser);
       });
     });
     updateExcludeCount();
