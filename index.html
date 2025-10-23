@@ -51,7 +51,7 @@
       </div>
       <div>
         <label>Allowed Remaining Money</label>
-        <input id="allowLeft" type="number" step="1" value="3" />
+        <input id="allowLeft" type="number" step="1" value="0" />
       </div>
     </div>
 
@@ -116,102 +116,13 @@
   const CATEGORIES = ['Drink','Snack','Other'];
   const EXCLUDED_CATS_BY_DEFAULT = new Set([]);
   const items = [
-    { name: "海苔杏仁小魚", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Other' },
-    { name: "威德in果凍飲", priceCents: 4200, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "微笑河馬巧克力餅", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "卡迪那原味薯條", priceCents: 4500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "沙茶豆干", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Other' },
-    { name: "張君雅系列", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "貝果", priceCents: 2800, loc: "5F教學部側(無打折)", cat: 'Other' },
-    { name: "草莓夾心麵包", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Other' },
-    { name: "樂事海苔洋芋片", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "義美小泡芙", priceCents: 3000, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "波的多蚵仔煎", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "可樂果", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "麥香/波蜜果茶", priceCents: 1500, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "BOGAR氣泡水", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "麥茶", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "茶裏王", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "比較貴的茶裏王", priceCents: 2400, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "百事可樂", priceCents: 3000, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "海苔杏仁小魚", priceCents: 3200, loc: "5F刀房側A", cat: 'Other' },
-    { name: "綜合堅果", priceCents: 3200, loc: "5F刀房側A", cat: 'Other' },
-    { name: "科學麵", priceCents: 1000, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "百慕達脆薯", priceCents: 1800, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "義美小泡芙", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "旺旺", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "ChocoPie", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "卡迪娜番茄薯條", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "品客", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "奶酥麵包/巧克力麵包", priceCents: 2300, loc: "5F刀房側A", cat: 'Other' },
-    { name: "草莓/花生三明治", priceCents: 2700, loc: "5F刀房側A", cat: 'Other' },
-    { name: "RedBull", priceCents: 5400, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "統一布丁", priceCents: 1800, loc: "5F刀房側A", cat: 'Other' },
-    { name: "伴點巧克力牛奶", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "微蘇打", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "芬達", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "舒跑", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "可口可樂", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "偉恩咖啡", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "康貝特咖啡", priceCents: 3000, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "阿華田", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "八寶粥", priceCents: 3600, loc: "5F刀房側A", cat: 'Other' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "微舒打", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "PH9.0純水", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "茶裏王", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "鱈魚香絲", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "飲冰室茶集", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "可爾必思", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "瑞穗巧克力牛奶", priceCents: 3000, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "瑞穗鮮奶", priceCents: 3200, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "AB優酪乳", priceCents: 2500, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "木瓜牛乳", priceCents: 3200, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "糙米漿", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "純喫茶", priceCents: 1800, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "農榨", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "統一無糖豆漿", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "綜合堅果", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
-    { name: "科學麵", priceCents: 1000, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "微笑河馬巧克力餅", priceCents: 3200, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "沙茶豆干", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
-    { name: "可樂果", priceCents: 1800, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "卡迪娜番茄薯條", priceCents: 2300, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "旺旺", priceCents: 2700, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "波的多蚵仔煎", priceCents: 1800, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "統一泡麵", priceCents: 2100, loc: "1F宿舍A", cat: 'Other' },
-    { name: "來一客", priceCents: 2300, loc: "1F宿舍A", cat: 'Other' },
-    { name: "拉麵道", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
-    { name: "MountainDew", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "品客", priceCents: 2700, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "伴點巧克力牛奶", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "咖啡廣場", priceCents: 1500, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "舒跑", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "阿華田", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "微蘇打", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "寶礦力水得", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "八寶粥", priceCents: 3600, loc: "1F宿舍A", cat: 'Other' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "茶裏王", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "比較貴的茶裏王", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "青草茶", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "麥香寶特瓶", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "飲冰室茶集", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "可爾必思", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "偉恩咖啡", priceCents: 2700, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "瑞穗巧克力牛奶", priceCents: 3000, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "瑞穗鮮奶", priceCents: 3200, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "AB優酪乳", priceCents: 2500, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "木瓜牛乳", priceCents: 3200, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "糙米漿", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "無糖豆漿", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "純喫茶", priceCents: 1800, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "農榨", priceCents: 2700, loc: "1F宿舍B", cat: 'Drink' }
+    { name: 'Apple Juice', priceCents: 2500, loc: 'Machine A', cat: 'Drink' },
+    { name: 'Apple Juice', priceCents: 2600, loc: 'Machine B', cat: 'Drink' },
+    { name: 'Milk', priceCents: 4250, loc: 'Machine B', cat: 'Drink' },
+    { name: 'Milk', priceCents: 4500, loc: 'Machine Premium', cat: 'Drink' },
+    { name: 'Cookies', priceCents: 1500, loc: 'Machine A', cat: 'Snack' },
+    { name: 'Instant Noodles', priceCents: 3200, loc: 'Machine B', cat: 'Other' }
   ];
-
 
   // ==== Utils ====
   const money = (c)=> Math.round(c/100);
@@ -295,6 +206,24 @@
 
   function initMachineList(){
     const locs = [...new Set(items.map(x=>x.loc))].sort();
+    if (!machineList) return;
+    // Build via innerHTML for robustness
+    machineList.innerHTML = locs.map(loc => `
+      <label class="machine">
+        <input type="checkbox" value="${escapeHtml(loc)}" ${EXCLUDED_MACHINES_BY_DEFAULT.has(loc)?'':'checked'}>
+        <span>${escapeHtml(loc)}</span>
+      </label>
+    `).join('');
+    // init browse select, too
+    if (browseSelect){
+      browseSelect.innerHTML = '';
+      const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='All machines';
+      browseSelect.appendChild(optAll);
+      locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; browseSelect.appendChild(o); });
+      browseSelect.value='__ALL__';
+    }
+  }{
+    const locs = [...new Set(items.map(x=>x.loc))].sort();
     machineList.innerHTML = '';
     locs.forEach(loc=>{
       const label = document.createElement('label'); label.className='machine';
@@ -315,6 +244,14 @@
   }
 
   function initCategoryList(){
+    if (!categoryList) return;
+    categoryList.innerHTML = CATEGORIES.map(cat => `
+      <label class="category">
+        <input type="checkbox" value="${escapeHtml(cat)}" ${EXCLUDED_CATS_BY_DEFAULT.has(cat)?'':'checked'}>
+        <span>${escapeHtml(cat)}</span>
+      </label>
+    `).join('');
+  }{
     categoryList.innerHTML = '';
     CATEGORIES.forEach(cat=>{
       const label=document.createElement('label'); label.className='category';
@@ -469,6 +406,22 @@
   // ==== Wire up ====
   window.addEventListener('DOMContentLoaded', ()=>{
     try{ initMachineList(); }catch(e){ console.error(e); }
+    try{ initCategoryList(); }catch(e){ console.error(e); }
+    // double-render safety in case of late style/layout scripts
+    setTimeout(()=>{ try{ initMachineList(); }catch(e){} try{ initCategoryList(); }catch(e){} }, 0);
+
+    updateExcludeCount();
+    const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
+    const resetBtn = byId('reset'); if(resetBtn) resetBtn.addEventListener('click', resetAll);
+    const recalcBtn = byId('recalcExcluded'); if(recalcBtn) recalcBtn.addEventListener('click', runCalc);
+    const clearBtn = byId('clearExcluded'); if(clearBtn) clearBtn.addEventListener('click', ()=>{ excludedPrices.clear(); updateExcludeCount(); runCalc(); });
+
+    // browse: initial render and hooks
+    if(browseRefresh) browseRefresh.addEventListener('click', renderMachineBrowser);
+    if(browseSelect) browseSelect.addEventListener('change', renderMachineBrowser);
+    if (categoryList) categoryList.addEventListener('change', renderMachineBrowser);
+    renderMachineBrowser();
+  }); }catch(e){ console.error(e); }
     try{ initCategoryList(); }catch(e){ console.error(e); }
     updateExcludeCount();
     const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
