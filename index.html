@@ -35,23 +35,24 @@
 </head>
 <body>
   <div class="container">
-    <div class="topbar">Made by Tony Lu</div>
+    <div class="topbar">Created by Tony Lu (2025)</div>
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <div>
         <h1>Best Combination Finder</h1>
-        <div class="note">Rule: Total budget < 200 | Each item < 50 | Repeat purchase allowed</div>
       </div>
-      <a href="https://example.com/balance" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
+      <a href="https://pay.yallvend.com/app/point_check/point_check?key=35269efad18c5c3c8021107649e65eb73756d5920dcc7a7e4ab724fec6b4743f&country=tw
+" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
+      <div class="note">Balance checking UserName: W + ID</div>
     </div>
 
     <div class="grid grid-2 card">
       <div>
         <label>Total Budget</label>
-        <input id="budget" type="number" step="1" value="120" />
+        <input id="budget" type="number" step="1" value="50" />
       </div>
       <div>
         <label>Allowed Remaining Money</label>
-        <input id="allowLeft" type="number" step="1" value="3" />
+        <input id="allowLeft" type="number" step="1" value="0" />
       </div>
     </div>
 
@@ -70,6 +71,7 @@
       <button id="reset" class="secondary">Clear Result</button>
       <div id="messages"></div>
     </div>
+
     <div class="grid grid-3 card">
       <div class="stat"><div class="label">Best Total</div><div class="value" id="statBest">—</div></div>
       <div class="stat"><div class="label">Remaining</div><div class="value" id="statRemain">—</div></div>
@@ -87,56 +89,117 @@
       </div>
       <div id="list"></div>
     </div>
-    <!-- Browse by vending machine (moved near bottom) -->
-    <div class="card">
-      <div class="row" style="justify-content:space-between; align-items:end;">
-        <div style="flex:1; min-width:220px;">
-          <label>Browse items by machine</label>
-          <select id="browseMachine"></select>
-          <div class="note">Uses your current category filters. (Price exclusions are ignored here so you can still see all items.)</div>
-        </div>
-        <div>
-          <button id="browseRefresh" class="secondary">Refresh list</button>
-        </div>
-      </div>
-      <div id="machineBrowser" style="margin-top:8px;"></div>
-    </div>
 
     <div class="card">
       <h3>Report anomaly / suggestion</h3>
-      <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, UI suggestions).</div>
-      <a id="reportLink" href="https://example.com/your-google-form" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
-    </div>
-    <!-- Browse items by vending machine (new) -->
-    <div class="card">
-      <h3>Browse items by vending machine</h3>
-      <div class="row" style="justify-content:space-between; align-items:end;">
-        <div style="flex:1; min-width:220px;">
-          <label>Vending machine</label>
-          <select id="browseMachine"></select>
-        </div>
-        <div>
-          <button id="browseRefresh" class="secondary">Refresh list</button>
-        </div>
-      </div>
-      <div id="machineBrowser" style="margin-top:8px;"></div>
+      <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, suggestions).</div>
+      <a id="reportLink" href="https://docs.google.com/forms/d/e/1FAIpQLSf1AJok723JrwLvD0LFKKWBkxCgJX4xoHJpcRhkRWByDGqFhA/viewform?usp=header" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
     </div>
   </div>
 
 <script>
 (function(){
   // ==== Config & Data ====
-  const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['Machine Premium']);
+  const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['5F教學部側(無打折)']);
   const CATEGORIES = ['Drink','Snack','Other'];
   const EXCLUDED_CATS_BY_DEFAULT = new Set([]);
   const items = [
-    { name: 'Apple Juice', priceCents: 2500, loc: 'Machine A', cat: 'Drink' },
-    { name: 'Apple Juice', priceCents: 2600, loc: 'Machine B', cat: 'Drink' },
-    { name: 'Milk', priceCents: 4250, loc: 'Machine B', cat: 'Drink' },
-    { name: 'Milk', priceCents: 4500, loc: 'Machine Premium', cat: 'Drink' },
-    { name: 'Cookies', priceCents: 1500, loc: 'Machine A', cat: 'Snack' },
-    { name: 'Instant Noodles', priceCents: 3200, loc: 'Machine B', cat: 'Other' }
+    { name: "海苔杏仁小魚", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Other' },
+    { name: "威德in果凍飲", priceCents: 4200, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "微笑河馬巧克力餅", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "卡迪那原味薯條", priceCents: 4500, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "沙茶豆干", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Other' },
+    { name: "張君雅系列", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "貝果", priceCents: 2800, loc: "5F教學部側(無打折)", cat: 'Other' },
+    { name: "草莓夾心麵包", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Other' },
+    { name: "樂事海苔洋芋片", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "義美小泡芙", priceCents: 3000, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "波的多蚵仔煎", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "可樂果", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Snack' },
+    { name: "麥香/波蜜果茶", priceCents: 1500, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "BOGAR氣泡水", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "麥茶", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "茶裏王", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "比較貴的茶裏王", priceCents: 2400, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "百事可樂", priceCents: 3000, loc: "5F教學部側(無打折)", cat: 'Drink' },
+    { name: "海苔杏仁小魚", priceCents: 3200, loc: "5F刀房側A", cat: 'Other' },
+    { name: "綜合堅果", priceCents: 3200, loc: "5F刀房側A", cat: 'Other' },
+    { name: "科學麵", priceCents: 1000, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "百慕達脆薯", priceCents: 1800, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "義美小泡芙", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "旺旺", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "ChocoPie", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "卡迪娜番茄薯條", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "品客", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "奶酥麵包/巧克力麵包", priceCents: 2300, loc: "5F刀房側A", cat: 'Other' },
+    { name: "草莓/花生三明治", priceCents: 2700, loc: "5F刀房側A", cat: 'Other' },
+    { name: "RedBull", priceCents: 5400, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "統一布丁", priceCents: 1800, loc: "5F刀房側A", cat: 'Other' },
+    { name: "伴點巧克力牛奶", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "微蘇打", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "芬達", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "舒跑", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "可口可樂", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "偉恩咖啡", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "康貝特咖啡", priceCents: 3000, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "阿華田", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "八寶粥", priceCents: 3600, loc: "5F刀房側A", cat: 'Other' },
+    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "微舒打", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "PH9.0純水", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "茶裏王", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
+    { name: "鱈魚香絲", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
+    { name: "飲冰室茶集", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "可爾必思", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "瑞穗巧克力牛奶", priceCents: 3000, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "瑞穗鮮奶", priceCents: 3200, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "AB優酪乳", priceCents: 2500, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "木瓜牛乳", priceCents: 3200, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "糙米漿", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "純喫茶", priceCents: 1800, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "農榨", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "統一無糖豆漿", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
+    { name: "綜合堅果", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
+    { name: "科學麵", priceCents: 1000, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "微笑河馬巧克力餅", priceCents: 3200, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "沙茶豆干", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
+    { name: "可樂果", priceCents: 1800, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "卡迪娜番茄薯條", priceCents: 2300, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "旺旺", priceCents: 2700, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "波的多蚵仔煎", priceCents: 1800, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "統一泡麵", priceCents: 2100, loc: "1F宿舍A", cat: 'Other' },
+    { name: "來一客", priceCents: 2300, loc: "1F宿舍A", cat: 'Other' },
+    { name: "拉麵道", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
+    { name: "MountainDew", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "品客", priceCents: 2700, loc: "1F宿舍A", cat: 'Snack' },
+    { name: "伴點巧克力牛奶", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "咖啡廣場", priceCents: 1500, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "舒跑", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "阿華田", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "微蘇打", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "寶礦力水得", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "八寶粥", priceCents: 3600, loc: "1F宿舍A", cat: 'Other' },
+    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "茶裏王", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "比較貴的茶裏王", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "青草茶", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "麥香寶特瓶", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
+    { name: "飲冰室茶集", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "可爾必思", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "偉恩咖啡", priceCents: 2700, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "瑞穗巧克力牛奶", priceCents: 3000, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "瑞穗鮮奶", priceCents: 3200, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "AB優酪乳", priceCents: 2500, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "木瓜牛乳", priceCents: 3200, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "糙米漿", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "無糖豆漿", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "純喫茶", priceCents: 1800, loc: "1F宿舍B", cat: 'Drink' },
+    { name: "農榨", priceCents: 2700, loc: "1F宿舍B", cat: 'Drink' }
   ];
+
 
   // ==== Utils ====
   const money = (c)=> Math.round(c/100);
@@ -210,36 +273,12 @@
   const btnReset = byId('reset');
   const btnRecalc = byId('recalcExcluded');
   const btnClearEx = byId('clearExcluded');
-  const browseSelect = byId('browseMachine');
-  const browseRefresh = byId('browseRefresh');
-  const machineBrowser = byId('machineBrowser');
-  const browseSelect = byId('browseMachine');
-  const browseRefresh = byId('browseRefresh');
-  const machineBrowser = byId('machineBrowser');
 
   // Exclusions by unit price
   const excludedPrices = new Set();
   const updateExcludeCount = ()=>{ if(excludeCountEl) excludeCountEl.textContent = 'Excluded unit prices: ' + excludedPrices.size; };
 
   function initMachineList(){
-    const locs = [...new Set(items.map(x=>x.loc))].sort();
-    if (!machineList) return;
-    // Build via innerHTML for robustness
-    machineList.innerHTML = locs.map(loc => `
-      <label class="machine">
-        <input type="checkbox" value="${escapeHtml(loc)}" ${EXCLUDED_MACHINES_BY_DEFAULT.has(loc)?'':'checked'}>
-        <span>${escapeHtml(loc)}</span>
-      </label>
-    `).join('');
-    // init browse select, too
-    if (browseSelect){
-      browseSelect.innerHTML = '';
-      const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='All machines';
-      browseSelect.appendChild(optAll);
-      locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; browseSelect.appendChild(o); });
-      browseSelect.value='__ALL__';
-    }
-  }{
     const locs = [...new Set(items.map(x=>x.loc))].sort();
     machineList.innerHTML = '';
     locs.forEach(loc=>{
@@ -249,15 +288,6 @@
       label.appendChild(cb); label.appendChild(span);
       machineList.appendChild(label);
     });
-    // init browse select, too
-    if (browseSelect){
-      browseSelect.innerHTML = '';
-      const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='All machines';
-      browseSelect.appendChild(optAll);
-      locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; browseSelect.appendChild(o); });
-      browseSelect.value='__ALL__';
-    }
-  });
   }
 
   function initCategoryList(){
@@ -271,90 +301,8 @@
     });
   }
 
-  // === Browse helper ===
-  function initBrowseMachines(){
-    if(!browseSelect) return;
-    const locs = [...new Set(items.map(x=>x.loc))].sort();
-    browseSelect.innerHTML = '';
-    const optAll = document.createElement('option');
-    optAll.value='__ALL__'; optAll.textContent='All machines';
-    browseSelect.appendChild(optAll);
-    locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; browseSelect.appendChild(o); });
-    browseSelect.value='__ALL__';
-  }
-
-  function renderMachineBrowser(){
-    if(!machineBrowser) return;
-    const selected = browseSelect && browseSelect.value ? browseSelect.value : '__ALL__';
-    const selectedCats = getChecked(categoryList);
-    const filtered = items.filter(it => (selected==='__ALL__' || it.loc===selected) && (selectedCats.length===0 || selectedCats.includes(it.cat)));
-    const byMachine = new Map();
-    for(const it of filtered){ if(!byMachine.has(it.loc)) byMachine.set(it.loc, []); byMachine.get(it.loc).push(it); }
-
-    const machines = [...byMachine.keys()].sort();
-    if(machines.length===0){ machineBrowser.innerHTML = '<div class="note">No items with current filters.</div>'; return; }
-
-    const container = document.createElement('div');
-    machines.forEach(loc =>{
-      const listForLoc = byMachine.get(loc).slice().sort((a,b)=>{
-        if(a.priceCents!==b.priceCents) return a.priceCents-b.priceCents;
-        const n=a.name.localeCompare(b.name); if(n!==0) return n; return a.cat.localeCompare(b.cat);
-      });
-      const d = document.createElement('details'); d.open = (selected!=='__ALL__');
-      d.innerHTML = `<summary><strong>${escapeHtml(loc)}</strong> — ${listForLoc.length} items</summary>`;
-      const tbl = document.createElement('table');
-      const rows = listForLoc.map(it=>`<tr><td>${escapeHtml(it.name)}</td><td>${money(it.priceCents)}</td><td>${escapeHtml(it.cat)}</td></tr>`).join('');
-      tbl.innerHTML = `<thead><tr><th>Item</th><th>Price</th><th>Category</th></tr></thead><tbody>${rows}</tbody>`;
-      d.appendChild(tbl);
-      container.appendChild(d);
-    });
-    machineBrowser.innerHTML='';
-    machineBrowser.appendChild(container);
-  }
-
   function getChecked(listEl){
     return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
-  }
-
-  // === Browse machines ===
-  function renderMachineBrowser(){
-    if(!machineBrowser) return;
-    if(!categoryList) return;
-    if(!machineBrowser) return;
-    const selectedCats = getChecked(categoryList);
-    const selected = browseSelect && browseSelect.value ? browseSelect.value : '__ALL__';
-
-    // Only apply category filters; ignore price exclusions to keep visibility
-    const filtered = items.filter(x => selectedCats.includes(x.cat));
-    const byMachine = new Map();
-    for(const it of filtered){
-      if(selected !== '__ALL__' && it.loc !== selected) continue;
-      if(!byMachine.has(it.loc)) byMachine.set(it.loc, []);
-      byMachine.get(it.loc).push(it);
-    }
-
-    // Build UI
-    const container = document.createElement('div');
-    const machines = [...byMachine.keys()].sort();
-    if(machines.length === 0){ container.appendChild(document.createTextNode('No items with current filters.')); machineBrowser.innerHTML=''; machineBrowser.appendChild(container); return; }
-
-    machines.forEach(loc =>{
-      const listForLoc = byMachine.get(loc).slice().sort((a,b)=>{
-        if(a.priceCents!==b.priceCents) return a.priceCents-b.priceCents;
-        const n=a.name.localeCompare(b.name); if(n!==0) return n; return a.cat.localeCompare(b.cat);
-      });
-      const d = document.createElement('details');
-      const count = listForLoc.length;
-      d.innerHTML = `<summary><strong>${escapeHtml(loc)}</strong> — ${count} items</summary>`;
-      const tbl = document.createElement('table');
-      const rows = listForLoc.map(it => `<tr><td>${escapeHtml(it.name)}</td><td>${money(it.priceCents)}</td><td>${escapeHtml(it.cat)}</td></tr>`).join('');
-      tbl.innerHTML = `<thead><tr><th>Item</th><th>Price</th><th>Category</th></tr></thead><tbody>${rows}</tbody>`;
-      d.appendChild(tbl);
-      container.appendChild(d);
-    });
-
-    machineBrowser.innerHTML='';
-    machineBrowser.appendChild(container);
   }
 
   function renderCombos(allCombos, budgetCents, priceCatalog){
@@ -393,12 +341,6 @@
         const p = Number(cb.getAttribute('data-price'));
         if(cb.checked) excludedPrices.add(p); else excludedPrices.delete(p);
         updateExcludeCount();
-    // init browse
-    initBrowseMachines();
-    renderMachineBrowser();
-    if(browseSelect) browseSelect.addEventListener('change', renderMachineBrowser);
-    if(browseRefresh) browseRefresh.addEventListener('click', renderMachineBrowser);
-    if(categoryList) categoryList.addEventListener('change', renderMachineBrowser);
       });
     });
     updateExcludeCount();
@@ -409,7 +351,7 @@
       messages.innerHTML=''; list.innerHTML='';
       const budgetVal = Number(budgetInput.value)||0;
       const allowVal = Number(allowInput.value)||0;
-      if(budgetVal<=0 || budgetVal>=200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
+      if(budgetVal<=0 || budgetVal>200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
       const budgetCents = Math.round(budgetVal*100);
       const allowCents = Math.round(allowVal*100);
 
@@ -461,36 +403,6 @@
   // ==== Wire up ====
   window.addEventListener('DOMContentLoaded', ()=>{
     try{ initMachineList(); }catch(e){ console.error(e); }
-    try{ initCategoryList(); }catch(e){ console.error(e); }
-    // double-render safety in case of late style/layout scripts
-    setTimeout(()=>{ try{ initMachineList(); }catch(e){} try{ initCategoryList(); }catch(e){} }, 0);
-
-    updateExcludeCount();
-    const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
-    const resetBtn = byId('reset'); if(resetBtn) resetBtn.addEventListener('click', resetAll);
-    const recalcBtn = byId('recalcExcluded'); if(recalcBtn) recalcBtn.addEventListener('click', runCalc);
-    const clearBtn = byId('clearExcluded'); if(clearBtn) clearBtn.addEventListener('click', ()=>{ excludedPrices.clear(); updateExcludeCount(); runCalc(); });
-
-    // browse: initial render and hooks
-    if(browseRefresh) browseRefresh.addEventListener('click', renderMachineBrowser);
-    if(browseSelect) browseSelect.addEventListener('change', renderMachineBrowser);
-    if (categoryList) categoryList.addEventListener('change', renderMachineBrowser);
-    renderMachineBrowser();
-  }); }catch(e){ console.error(e); }
-    try{ initCategoryList(); }catch(e){ console.error(e); }
-    updateExcludeCount();
-    const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
-    const resetBtn = byId('reset'); if(resetBtn) resetBtn.addEventListener('click', resetAll);
-    const recalcBtn = byId('recalcExcluded'); if(recalcBtn) recalcBtn.addEventListener('click', runCalc);
-    const clearBtn = byId('clearExcluded'); if(clearBtn) clearBtn.addEventListener('click', ()=>{ excludedPrices.clear(); updateExcludeCount(); runCalc(); });
-
-    // browse: initial render and hooks
-    if(browseRefresh) browseRefresh.addEventListener('click', renderMachineBrowser);
-    if(browseSelect) browseSelect.addEventListener('change', renderMachineBrowser);
-    // auto-refresh when category checkboxes change
-    if (categoryList) categoryList.addEventListener('change', renderMachineBrowser);
-    renderMachineBrowser();
-  }); }catch(e){ console.error(e); }
     try{ initCategoryList(); }catch(e){ console.error(e); }
     updateExcludeCount();
     const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
