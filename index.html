@@ -35,24 +35,23 @@
 </head>
 <body>
   <div class="container">
-    <div class="topbar">Created by Tony Lu (2025)</div>
+    <div class="topbar">Made by Tony Lu</div>
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <div>
         <h1>Best Combination Finder</h1>
+        <div class="note">Rule: Total budget < 200 | Each item < 50 | Repeat purchase allowed</div>
       </div>
-      <a href="https://pay.yallvend.com/app/point_check/point_check?key=35269efad18c5c3c8021107649e65eb73756d5920dcc7a7e4ab724fec6b4743f&country=tw
-" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
-      <div class="note">Balance checking UserName: W + ID</div>
+      <a href="https://example.com/balance" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
     </div>
 
     <div class="grid grid-2 card">
       <div>
         <label>Total Budget</label>
-        <input id="budget" type="number" step="1" value="50" />
+        <input id="budget" type="number" step="1" value="120" />
       </div>
       <div>
         <label>Allowed Remaining Money</label>
-        <input id="allowLeft" type="number" step="1" value="0" />
+        <input id="allowLeft" type="number" step="1" value="3" />
       </div>
     </div>
 
@@ -70,6 +69,21 @@
       <button id="run">Calculate Best Combination</button>
       <button id="reset" class="secondary">Clear Result</button>
       <div id="messages"></div>
+    </div>
+
+    <!-- Browse by vending machine -->
+    <div class="card">
+      <div class="row" style="justify-content:space-between; align-items:end;">
+        <div style="flex:1; min-width:220px;">
+          <label>Browse items by machine</label>
+          <select id="browseMachine"></select>
+          <div class="note">Uses your current category filters. (Price exclusions are ignored here so you can still see all items.)</div>
+        </div>
+        <div>
+          <button id="browseRefresh" class="secondary">Refresh list</button>
+        </div>
+      </div>
+      <div id="machineBrowser" style="margin-top:8px;"></div>
     </div>
 
     <div class="grid grid-3 card">
@@ -92,15 +106,15 @@
 
     <div class="card">
       <h3>Report anomaly / suggestion</h3>
-      <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, suggestions).</div>
-      <a id="reportLink" href="https://docs.google.com/forms/d/e/1FAIpQLSf1AJok723JrwLvD0LFKKWBkxCgJX4xoHJpcRhkRWByDGqFhA/viewform?usp=header" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
+      <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, UI suggestions).</div>
+      <a id="reportLink" href="https://example.com/your-google-form" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
     </div>
   </div>
 
 <script>
 (function(){
   // ==== Config & Data ====
-  const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['5F教學部側(無打折)']);
+  const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['Machine Premium']);
   const CATEGORIES = ['Drink','Snack','Other'];
   const EXCLUDED_CATS_BY_DEFAULT = new Set([]);
   const items = [
@@ -273,6 +287,9 @@
   const btnReset = byId('reset');
   const btnRecalc = byId('recalcExcluded');
   const btnClearEx = byId('clearExcluded');
+  const browseSelect = byId('browseMachine');
+  const browseRefresh = byId('browseRefresh');
+  const machineBrowser = byId('machineBrowser');
 
   // Exclusions by unit price
   const excludedPrices = new Set();
@@ -288,6 +305,15 @@
       label.appendChild(cb); label.appendChild(span);
       machineList.appendChild(label);
     });
+    // init browse select, too
+    if (browseSelect){
+      browseSelect.innerHTML = '';
+      const optAll = document.createElement('option'); optAll.value='__ALL__'; optAll.textContent='All machines';
+      browseSelect.appendChild(optAll);
+      locs.forEach(loc=>{ const o=document.createElement('option'); o.value=loc; o.textContent=loc; browseSelect.appendChild(o); });
+      browseSelect.value='__ALL__';
+    }
+  });
   }
 
   function initCategoryList(){
@@ -299,10 +325,50 @@
       label.appendChild(cb); label.appendChild(span);
       categoryList.appendChild(label);
     });
+  });
   }
 
   function getChecked(listEl){
     return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
+  }
+
+  // === Browse machines ===
+  function renderMachineBrowser(){
+    if(!machineBrowser) return;
+    const selectedCats = getChecked(categoryList);
+    const selected = browseSelect && browseSelect.value ? browseSelect.value : '__ALL__';
+
+    // Only apply category filters; ignore price exclusions to keep visibility
+    const filtered = items.filter(x => selectedCats.includes(x.cat));
+    const byMachine = new Map();
+    for(const it of filtered){
+      if(selected !== '__ALL__' && it.loc !== selected) continue;
+      if(!byMachine.has(it.loc)) byMachine.set(it.loc, []);
+      byMachine.get(it.loc).push(it);
+    }
+
+    // Build UI
+    const container = document.createElement('div');
+    const machines = [...byMachine.keys()].sort();
+    if(machines.length === 0){ container.appendChild(document.createTextNode('No items with current filters.')); machineBrowser.innerHTML=''; machineBrowser.appendChild(container); return; }
+
+    machines.forEach(loc =>{
+      const listForLoc = byMachine.get(loc).slice().sort((a,b)=>{
+        if(a.priceCents!==b.priceCents) return a.priceCents-b.priceCents;
+        const n=a.name.localeCompare(b.name); if(n!==0) return n; return a.cat.localeCompare(b.cat);
+      });
+      const d = document.createElement('details');
+      const count = listForLoc.length;
+      d.innerHTML = `<summary><strong>${escapeHtml(loc)}</strong> — ${count} items</summary>`;
+      const tbl = document.createElement('table');
+      const rows = listForLoc.map(it => `<tr><td>${escapeHtml(it.name)}</td><td>${money(it.priceCents)}</td><td>${escapeHtml(it.cat)}</td></tr>`).join('');
+      tbl.innerHTML = `<thead><tr><th>Item</th><th>Price</th><th>Category</th></tr></thead><tbody>${rows}</tbody>`;
+      d.appendChild(tbl);
+      container.appendChild(d);
+    });
+
+    machineBrowser.innerHTML='';
+    machineBrowser.appendChild(container);
   }
 
   function renderCombos(allCombos, budgetCents, priceCatalog){
@@ -351,7 +417,7 @@
       messages.innerHTML=''; list.innerHTML='';
       const budgetVal = Number(budgetInput.value)||0;
       const allowVal = Number(allowInput.value)||0;
-      if(budgetVal<=0 || budgetVal>200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
+      if(budgetVal<=0 || budgetVal>=200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
       const budgetCents = Math.round(budgetVal*100);
       const allowCents = Math.round(allowVal*100);
 
@@ -403,6 +469,20 @@
   // ==== Wire up ====
   window.addEventListener('DOMContentLoaded', ()=>{
     try{ initMachineList(); }catch(e){ console.error(e); }
+    try{ initCategoryList(); }catch(e){ console.error(e); }
+    updateExcludeCount();
+    const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
+    const resetBtn = byId('reset'); if(resetBtn) resetBtn.addEventListener('click', resetAll);
+    const recalcBtn = byId('recalcExcluded'); if(recalcBtn) recalcBtn.addEventListener('click', runCalc);
+    const clearBtn = byId('clearExcluded'); if(clearBtn) clearBtn.addEventListener('click', ()=>{ excludedPrices.clear(); updateExcludeCount(); runCalc(); });
+
+    // browse: initial render and hooks
+    if(browseRefresh) browseRefresh.addEventListener('click', renderMachineBrowser);
+    if(browseSelect) browseSelect.addEventListener('change', renderMachineBrowser);
+    // auto-refresh when category checkboxes change
+    categoryList.addEventListener('change', renderMachineBrowser);
+    renderMachineBrowser();
+  }); }catch(e){ console.error(e); }
     try{ initCategoryList(); }catch(e){ console.error(e); }
     updateExcludeCount();
     const runBtn = byId('run'); if(runBtn) runBtn.addEventListener('click', runCalc);
