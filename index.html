@@ -35,14 +35,13 @@
 </head>
 <body>
   <div class="container">
-    <div class="topbar">Created by Tony Lu (2025)</div>
+    <div class="topbar">Made by Tony Lu</div>
     <div class="row" style="justify-content:space-between;align-items:baseline;">
       <div>
         <h1>Best Combination Finder</h1>
-        <div class="note">Balance UserName: W + ID number</div>
+        <div class="note">Rule: Total budget < 200 | Each item < 50 | Repeat purchase allowed</div>
       </div>
-      <a href="https://pay.yallvend.com/app/point_check/point_check?key=35269efad18c5c3c8021107649e65eb73756d5920dcc7a7e4ab724fec6b4743f&country=tw
-" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
+      <a href="https://example.com/balance" target="_blank" style="text-decoration:underline;">Check balance ↗</a>
     </div>
 
     <div class="grid grid-2 card">
@@ -93,103 +92,23 @@
     <div class="card">
       <h3>Report anomaly / suggestion</h3>
       <div class="note">Use this link to submit updates or feedback (e.g., item disappeared, wrong price, new item, UI suggestions).</div>
-      <a id="reportLink" href="https://docs.google.com/forms/d/e/1FAIpQLSf1AJok723JrwLvD0LFKKWBkxCgJX4xoHJpcRhkRWByDGqFhA/viewform?usp=dialog" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
+      <a id="reportLink" href="https://example.com/your-google-form" target="_blank" style="text-decoration:underline;">Open report form ↗</a>
     </div>
   </div>
 
 <script>
 (function(){
   // ==== Config & Data ====
-  const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['5F教學部側(無打折)']);
+  const EXCLUDED_MACHINES_BY_DEFAULT = new Set(['Machine Premium']);
   const CATEGORIES = ['Drink','Snack','Other'];
   const EXCLUDED_CATS_BY_DEFAULT = new Set([]);
   const items = [
-    { name: "海苔杏仁小魚", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Other' },
-    { name: "威德in果凍飲", priceCents: 4200, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "微笑河馬巧克力餅", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "卡迪那原味薯條", priceCents: 4500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "沙茶豆干", priceCents: 3500, loc: "5F教學部側(無打折)", cat: 'Other' },
-    { name: "張君雅系列", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "樂事海苔洋芋片", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "可樂果", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Snack' },
-    { name: "麥香/波蜜果茶", priceCents: 1500, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "BOGAR氣泡水", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "麥茶", priceCents: 2500, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "茶裏王", priceCents: 2000, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "比較貴的茶裏王", priceCents: 2400, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "百事可樂", priceCents: 3000, loc: "5F教學部側(無打折)", cat: 'Drink' },
-    { name: "海苔杏仁小魚", priceCents: 3200, loc: "5F刀房側A", cat: 'Other' },
-    { name: "綜合堅果", priceCents: 3200, loc: "5F刀房側A", cat: 'Other' },
-    { name: "科學麵", priceCents: 1000, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "百慕達脆薯", priceCents: 1800, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "義美小泡芙", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "百慕達脆薯", priceCents: 1800, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "ChocoPie", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "百慕達脆薯", priceCents: 1800, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "品客", priceCents: 2700, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "RedBull", priceCents: 5400, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "巧克力牛奶", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "芬達", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "舒跑", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "可口可樂", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "偉恩咖啡", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "康貝特咖啡", priceCents: 3000, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "阿華田", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "八寶粥", priceCents: 3600, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "微舒打", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "PH9.0純水", priceCents: 2300, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "茶裏王", priceCents: 1800, loc: "5F刀房側A", cat: 'Drink' },
-    { name: "鱈魚香絲", priceCents: 2300, loc: "5F刀房側A", cat: 'Snack' },
-    { name: "飲冰室茶集", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "可爾必思", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "瑞穗巧克力牛奶", priceCents: 3000, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "瑞穗鮮奶", priceCents: 3200, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "AB優酪乳", priceCents: 2500, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "木瓜牛乳", priceCents: 3200, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "糙米漿", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "純喫茶", priceCents: 1800, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "農榨", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "統一無糖豆漿", priceCents: 2300, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "5F刀房側B", cat: 'Drink' },
-    { name: "綜合堅果", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
-    { name: "科學麵", priceCents: 1000, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "微笑河馬巧克力餅", priceCents: 3200, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "沙茶豆干", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
-    { name: "可樂果", priceCents: 1800, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "卡迪娜番茄薯條", priceCents: 2300, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "旺旺", priceCents: 2700, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "波的多蚵仔煎", priceCents: 1800, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "統一泡麵", priceCents: 2100, loc: "1F宿舍A", cat: 'Other' },
-    { name: "來一客", priceCents: 2300, loc: "1F宿舍A", cat: 'Other' },
-    { name: "拉麵道", priceCents: 3200, loc: "1F宿舍A", cat: 'Other' },
-    { name: "MountainDew", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "品客", priceCents: 2700, loc: "1F宿舍A", cat: 'Snack' },
-    { name: "巧克力牛奶", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "咖啡廣場", priceCents: 1500, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "舒跑", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "阿華田", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "微蘇打", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "寶礦力水得", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "八寶粥", priceCents: 3600, loc: "1F宿舍A", cat: 'Other' },
-    { name: "TreeTop蘋果汁", priceCents: 2700, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "茶裏王", priceCents: 1800, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "比較貴的茶裏王", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "青草茶", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "麥香寶特瓶", priceCents: 2300, loc: "1F宿舍A", cat: 'Drink' },
-    { name: "飲冰室茶集", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "可爾必思", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "偉恩咖啡", priceCents: 2700, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "瑞穗巧克力牛奶", priceCents: 3000, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "瑞穗鮮奶", priceCents: 3200, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "AB優酪乳", priceCents: 2500, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "木瓜牛乳", priceCents: 3200, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "糙米漿", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "無糖豆漿", priceCents: 2300, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "純喫茶", priceCents: 1800, loc: "1F宿舍B", cat: 'Drink' },
-    { name: "農榨", priceCents: 2700, loc: "1F宿舍B", cat: 'Drink' }
+    { name: 'Apple Juice', priceCents: 2500, loc: 'Machine A', cat: 'Drink' },
+    { name: 'Apple Juice', priceCents: 2600, loc: 'Machine B', cat: 'Drink' },
+    { name: 'Milk', priceCents: 4250, loc: 'Machine B', cat: 'Drink' },
+    { name: 'Milk', priceCents: 4500, loc: 'Machine Premium', cat: 'Drink' },
+    { name: 'Cookies', priceCents: 1500, loc: 'Machine A', cat: 'Snack' },
+    { name: 'Instant Noodles', priceCents: 3200, loc: 'Machine B', cat: 'Other' }
   ];
 
   // ==== Utils ====
@@ -199,39 +118,7 @@
   const warnBox = (msg)=>{ const d=document.createElement('div'); d.className='warn'; d.textContent='⚠️ '+msg; return d; };
   const escapeHtml = (s)=> String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#039;');
 
-  function solveUnbounded(budget, items){
-    // Robust DP with cheap-price preference at ties
-    const dp = new Array(budget + 1).fill(false); dp[0] = true;
-    const prev = new Array(budget + 1).fill(-1);
-    const lastPrice = new Array(budget + 1).fill(Infinity); lastPrice[0] = 0;
-
-    const order = items.map((_, i)=> i).sort((i,j)=>{
-      const pi=items[i].priceCents, pj=items[j].priceCents;
-      if(pi!==pj) return pi-pj;
-      const ni=items[i].name.localeCompare(items[j].name);
-      if(ni!==0) return ni;
-      return items[i].loc.localeCompare(items[j].loc);
-    });
-
-    for(let s=0; s<=budget; s++){
-      if(!dp[s]) continue;
-      for(const i of order){
-        const ns = s + items[i].priceCents;
-        if(ns>budget) continue;
-        if(!dp[ns]){ dp[ns]=true; prev[ns]=i; lastPrice[ns]=items[i].priceCents; }
-        else if(items[i].priceCents < lastPrice[ns]){ prev[ns]=i; lastPrice[ns]=items[i].priceCents; }
-      }
-    }
-    return {dp, prev};
-  }
-
-  function reconstruct(sum, prev, items){
-    const m = new Map(); let cur = sum;
-    while(cur>0){ const i=prev[cur]; if(i<0) break; m.set(i, (m.get(i)||0)+1); cur -= items[i].priceCents; }
-    const arr = [...m.entries()].map(([i,q])=>({name:items[i].name, qty:q, priceCents:items[i].priceCents, loc:items[i].loc, cat:items[i].cat}));
-    return { items: arr, totalCents: sum };
-  }
-
+  // Build a catalog by unit price: priceCents -> { name -> Set(locations) }
   function buildPriceCatalog(list){
     const byPrice = new Map();
     for(const it of list){
@@ -241,6 +128,44 @@
       byName.get(it.name).add(it.loc);
     }
     return byPrice;
+  }
+
+  // Enumerate ALL exact-sum combinations by UNIT PRICES (unbounded, with pruning)
+  // returns array of { total, counts: Map<price, qty> }
+  function enumerateCombos(pricesDesc, target, cap){
+    const out = [];
+    const cur = new Map();
+
+    function dfs(idx, remaining){
+      if(out.length >= cap) return; // cap to avoid explosion
+      if(idx === pricesDesc.length - 1){
+        const p = pricesDesc[idx];
+        if(remaining % p === 0){
+          const q = Math.floor(remaining / p);
+          if(q >= 0){ cur.set(p, (cur.get(p)||0) + q); pushCur(); cur.set(p, (cur.get(p)||0) - q); if(cur.get(p)===0) cur.delete(p); }
+        }
+        return;
+      }
+      const p = pricesDesc[idx];
+      const maxQ = Math.floor(remaining / p);
+      for(let q = maxQ; q >= 0; q--){
+        if(q>0){ cur.set(p, (cur.get(p)||0) + q); }
+        const rem = remaining - q*p;
+        if(rem < 0) { if(q>0){ cur.set(p, cur.get(p)-q); if(cur.get(p)===0) cur.delete(p);} break; }
+        dfs(idx+1, rem);
+        if(q>0){ cur.set(p, cur.get(p)-q); if(cur.get(p)===0) cur.delete(p); }
+        if(out.length >= cap) return;
+      }
+    }
+
+    function pushCur(){
+      const counts = new Map();
+      for(const [k,v] of cur.entries()){ if(v>0) counts.set(k,v); }
+      out.push({ total: target, counts });
+    }
+
+    dfs(0, target);
+    return out;
   }
 
   // ==== DOM refs ====
@@ -290,17 +215,18 @@
     return Array.from(listEl.querySelectorAll('input[type="checkbox"]:checked')).map(x=>x.value);
   }
 
-  function renderCombinations(valid, budgetCents, filtered, priceCatalog){
+  function renderCombos(allCombos, budgetCents, priceCatalog){
+    list.innerHTML = '';
     const frag = document.createDocumentFragment();
-    valid.forEach((sum, idx)=>{
-      const combo = reconstruct(sum, solve.prev, filtered);
-      const card = document.createElement('div'); card.className='card';
-      card.innerHTML = `<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.totalCents)} | Remaining: ${money(budgetCents-combo.totalCents)}</div>`;
 
-      const tbl = document.createElement('table');
-      const countByPrice = new Map();
-      combo.items.forEach(it=>{ countByPrice.set(it.priceCents, (countByPrice.get(it.priceCents)||0) + it.qty); });
-      const rows = [...countByPrice.entries()].sort((a,b)=>b[0]-a[0]).map(([p, qty])=>{
+    allCombos.forEach((combo, idx)=>{
+      const card = document.createElement('div'); card.className='card';
+      card.innerHTML = `<h4>Combination #${idx+1}</h4><div>Total: ${money(combo.total)} | Remaining: ${money(budgetCents-combo.total)}</div>`;
+
+      // rows by unit price desc
+      const prices = [...combo.counts.keys()].sort((a,b)=>b-a);
+      const rows = prices.map(p=>{
+        const qty = combo.counts.get(p);
         const subtotal = p*qty;
         const checked = excludedPrices.has(p) ? 'checked' : '';
         const byName = priceCatalog.get(p) || new Map();
@@ -311,10 +237,13 @@
         const details = `<details><summary>Show items for price ${money(p)}</summary><ul style="margin:4px 0 0 20px;">${optionsHtml || '<li class="note">No items listed</li>'}</ul></details>`;
         return `<tr><td colspan="4"><label><input type="checkbox" class="exclude-price" data-price="${p}" ${checked} /></label><div>${details}</div></td><td>${money(p)} × ${qty} = ${money(subtotal)}</td></tr>`;
       }).join('');
+
+      const tbl = document.createElement('table');
       tbl.innerHTML = `<thead><tr><th colspan="4">Exclude & Items</th><th>Total</th></tr></thead><tbody>${rows}</tbody>`;
 
       card.appendChild(tbl); frag.appendChild(card);
     });
+
     list.appendChild(frag);
 
     document.querySelectorAll('input.exclude-price').forEach(cb=>{
@@ -327,14 +256,12 @@
     updateExcludeCount();
   }
 
-  let solve = { dp: [], prev: [] };
-
   function runCalc(){
     try{
       messages.innerHTML=''; list.innerHTML='';
       const budgetVal = Number(budgetInput.value)||0;
       const allowVal = Number(allowInput.value)||0;
-      if(budgetVal<=0 || budgetVal>200){ messages.appendChild(errBox('Budget must be between 1 and 200.')); return; }
+      if(budgetVal<=0 || budgetVal>=200){ messages.appendChild(errBox('Budget must be between 0 and 200.')); return; }
       const budgetCents = Math.round(budgetVal*100);
       const allowCents = Math.round(allowVal*100);
 
@@ -343,23 +270,34 @@
       if(selectedMachines.length===0){ messages.appendChild(errBox('Please select at least one machine.')); return; }
       if(selectedCats.length===0){ messages.appendChild(errBox('Please select at least one category.')); return; }
 
+      // Filter items by machine/cat and price exclusions
       const filtered = items.filter(x=> selectedMachines.includes(x.loc) && selectedCats.includes(x.cat) && !excludedPrices.has(x.priceCents));
       if(filtered.length===0){ messages.appendChild(errBox('No items match filters / exclusions.')); return; }
 
+      // Build catalog and PRICES list (unique unit prices)
       const priceCatalog = buildPriceCatalog(filtered);
-      solve = solveUnbounded(budgetCents, filtered);
+      const pricesDesc = [...new Set(filtered.map(x=>x.priceCents))].sort((a,b)=>b-a);
+      if(pricesDesc.length===0){ messages.appendChild(errBox('No valid prices after filtering.')); return; }
 
+      // Enumerate ALL combos for each target sum from budget -> (budget-allow)
       const low = Math.max(0, budgetCents - allowCents);
-      const valid = [];
-      for(let s=budgetCents; s>=low; s--){ if(solve.dp[s]) valid.push(s); }
-      if(valid.length===0){ messages.appendChild(errBox('No combination found.')); return; }
+      const capPerTarget = 2000; // safety cap per target sum
+      const allCombos = [];
+      for(let target = budgetCents; target >= low; target--){
+        const combos = enumerateCombos(pricesDesc, target, capPerTarget);
+        // append
+        for(const c of combos){ allCombos.push(c); }
+        if(combos.length >= capPerTarget){ messages.appendChild(warnBox(`Reached combo cap (${capPerTarget}) at total ${money(target)}. Showing partial results for this total.`)); }
+      }
 
-      statBest.textContent = money(valid[0]);
-      statRemain.textContent = money(budgetCents - valid[0]);
-      statCount.textContent = valid.length;
+      if(allCombos.length===0){ messages.appendChild(errBox('No combination found.')); return; }
 
-      if(valid.length>300){ messages.appendChild(warnBox(`Many combinations found (${valid.length}). Rendering all may be slow.`)); }
-      renderCombinations(valid, budgetCents, filtered, priceCatalog);
+      // Stats based on the BEST total (first combo's total)
+      statBest.textContent = money(allCombos[0].total);
+      statRemain.textContent = money(budgetCents - allCombos[0].total);
+      statCount.textContent = allCombos.length;
+
+      renderCombos(allCombos, budgetCents, priceCatalog);
     }catch(e){
       console.error(e);
       messages.appendChild(errBox('Unexpected error: '+ (e && e.message ? e.message : e)));
